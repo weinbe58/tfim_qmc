@@ -75,7 +75,7 @@ class qaqmc{
 
 	// private functions:
 	void diagonal_update();
-	void inline update_g(int);
+	void inline update_S(int);
 	void link_verticies();
 	void cluster_update();
 	void visit_cluster();
@@ -199,10 +199,15 @@ void qaqmc<L,d,M,Nm,mstep>::write_out_lock(){
 
 	std::stringstream buffer;
 	buffer << std::setprecision(14) << std::fixed;
-	for(int i=0;i<Nm+1;i++){ buffer << std::setw(20) << E[i];}
-	for(int i=0;i<Nm+1;i++){ buffer << std::setw(20) << mi[i];}
-	for(int i=0;i<Nm+1;i++){ buffer << std::setw(20) << ma[i];}
-	for(int i=0;i<Nm+1;i++){ buffer << std::setw(20) << m2[i];}
+
+	for(int i=0;i<Nm+1;i++){ 
+		update_S(p_list[i]);
+		buffer << std::setw(20) << S;
+		buffer << std::setw(20) << E[i];
+		buffer << std::setw(20) << mi[i];
+		buffer << std::setw(20) << ma[i];
+		buffer << std::setw(20) << m2[i];
+	}
 	buffer << std::endl;
 
 
@@ -239,11 +244,14 @@ void qaqmc<L,d,M,Nm,mstep>::write_out(){
 	std::stringstream buffer;
 	
 	buffer << std::setprecision(14) << std::fixed;
-	for(int i=0;i<Nm+1;i++){ buffer << std::setw(20) << E[i];}
-	for(int i=0;i<Nm+1;i++){ buffer << std::setw(20) << Eising[i];}
-	for(int i=0;i<Nm+1;i++){ buffer << std::setw(20) << mi[i];}
-	for(int i=0;i<Nm+1;i++){ buffer << std::setw(20) << ma[i];}
-	for(int i=0;i<Nm+1;i++){ buffer << std::setw(20) << m2[i];}
+	for(int i=0;i<Nm+1;i++){ 
+		update_S(p_list[i]);
+		buffer << std::setw(20) << S;
+		buffer << std::setw(20) << E[i];
+		buffer << std::setw(20) << mi[i];
+		buffer << std::setw(20) << ma[i];
+		buffer << std::setw(20) << m2[i];
+	}
 	buffer << std::endl;
 
 	while(!open){ 
@@ -290,7 +298,7 @@ void qaqmc<L,d,M,Nm,mstep>::diagonal_update(){
 	for(int p=0;p<2*M;p++){
 		if(opstr[p].o1>-2){
 			bool accept=false;
-			update_g(p);
+			update_S(p);
 			double p1 = (1-S);
 			double p2 = ((2*d-1)*S+1);
 			while(!accept){
@@ -319,7 +327,7 @@ void qaqmc<L,d,M,Nm,mstep>::diagonal_update(){
 
 
 template<int L,int d,int M,int Nm,int mstep>
-void inline qaqmc<L,d,M,Nm,mstep>::update_g(int p){
+void inline qaqmc<L,d,M,Nm,mstep>::update_S(int p){
 	S=(p<M ? S_i+dS*(p+1) : S_f-dS*(p-M));
 }
 
@@ -420,7 +428,7 @@ void qaqmc<L,d,M,Nm,mstep>::beginMeasure(){
 template<int L,int d,int M,int Nm,int mstep>
 void qaqmc<L,d,M,Nm,mstep>::endMeasure(){
 	for(int i=0;i<=Nm;i++){
-		update_g(p_list[i]);
+		update_S(p_list[i]);
 		
 		Eising[i]/=double(N*mstep);
 		E[i]= -S*Eising[i] - (1.0-S)*double(Ef[i])/(double(Et[i])+1.1e-16);

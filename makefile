@@ -7,8 +7,8 @@ CD=.
 Inc= -I $(CD)
 
 
-twoway.out: $(CD)/test.cpp $(CD)/qaqmc.h
-	$(CC) $(Opt) $(Inc) -o twoway.out $(CD)/test.cpp 
+test.out: $(CD)/test.cpp $(CD)/qaqmc.h
+	$(CC) $(Opt) $(Inc) -o test.out $(CD)/test.cpp 
 
 
 
