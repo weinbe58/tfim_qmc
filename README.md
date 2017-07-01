@@ -26,7 +26,7 @@ it implements the 'two-way' evolution.
    * `"pzpz"` polarized along the positive z-axis on both sides
    * `"pxpx"` polarized along the positive x-axis on both sides
    * `"tr"` tperiodic SSE trace boundary conditions. 
- * `std::string output_file`: string which the output should be written to. 
+ * `std::string output_file`: string which constains the output file, which the data should be written to. 
  
 ## public methods of qaqmc:
  * `void write_out(void)`: write the current measurement results to the output file.
