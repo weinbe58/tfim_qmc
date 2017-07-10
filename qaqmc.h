@@ -33,63 +33,64 @@ struct get_N<L,1>
 template<int L,int d,int M,int Nm,int mstep>
 class qaqmc{
 
-	enum{N=get_N<L,d>::N};
-	enum{Nb=d*get_N<L,d>::N};
+	protected:
+		enum{N=get_N<L,d>::N};
+		enum{Nb=d*get_N<L,d>::N};
 
-	const double S_i;
-	const double S_f;
-	const double dS;
-	int Fl;
-	int Fr;
-	double S;
-	std::string output_file;
+		const double S_i;
+		const double S_f;
+		const double dS;
+		int Fl;
+		int Fr;
+		double S;
+		std::string output_file;
 
-	int Ef[Nm+1];
-	int Et[Nm+1];
-	double Eising[Nm+1];
-	double E[Nm+1];
-	double mi[Nm+1];
-	double ma[Nm+1];
-	double m2[Nm+1];
+		int Ef[Nm+1];
+		int Et[Nm+1];
+		double Eising[Nm+1];
+		double E[Nm+1];
+		double mi[Nm+1];
+		double ma[Nm+1];
+		double m2[Nm+1];
 
-	signed char spinsR[N];
-	signed char spins[N];
-	signed char spinsL[N];
+		signed char spinsR[N];
+		signed char spins[N];
+		signed char spinsL[N];
 
-	int nns[Nb];
-	int bst[2*Nb];
-	int p_list[Nm+1];
-	int Vl[N];
-	int Vr[N];
+		int nns[Nb];
+		int bst[2*Nb];
+		int p_list[Nm+1];
+		int Vl[N];
+		int Vr[N];
 
-	//MTRand ran;
+		//MTRand ran;
 
-	std::mt19937_64 gen;
-	std::uniform_real_distribution<double> dist;
+		std::mt19937_64 gen;
+		std::uniform_real_distribution<double> dist;
 
 
-	std::vector<optype> opstr;
-	std::stack<int> stk;
-	std::vector<int> X;
-	std::vector<bool> Measure;
+		std::vector<optype> opstr;
+		std::stack<int> stk;
+		std::vector<int> X;
+		std::vector<bool> Measure;
 
-	// private functions:
-	void diagonal_update();
-	void inline update_S(int);
-	void link_verticies();
-	void cluster_update();
-	void visit_cluster();
-	void flip_cluster();
+		// private functions:
+		void diagonal_update();
+		void inline update_S(int);
+		void link_verticies();
+		void cluster_update();
+		void visit_cluster();
+		void flip_cluster();
 
-	void beginMeasure();
-	void Measurement();
-	void endMeasure();
-	void double_opstr();
-	void print_opstr(bool);
+		void beginMeasure();
+		void Measurement();
+		void endMeasure();
+		void double_opstr();
+		void print_opstr(bool);
 
-	double inline ran(void){
-		return dist(gen);
-	}
+		double inline ran(void){
+			return dist(gen);
+		}
 
 
 	public:
