@@ -6,24 +6,24 @@ out = file.replace(".dat",".out")
 
 nbin = len([1 for line in open(file)])
 
-N_meas = 4
-data = np.loadtxt(file).reshape((nbin,-1,N_meas+1))
 
-mean = np.nanmean(data,axis=0)
-error = np.nanstd(data,axis=0)/np.sqrt(nbin)
+data = np.loadtxt(file).reshape((nbin,-1))
+S_list = np.unique(data[:,0])
+Ss = data[:,0]
 
-S = mean[:,0]
-mean = mean[:,1:]
-error = error[:,1:]
+mean = np.vstack((data[Ss==S,1:].mean(axis=0)) for S in S_list)
+error  = np.vstack((data[Ss==S,1:].std(axis=0) )/np.sqrt((Ss==S).sum()) for S in S_list)
 
-N_row = mean.shape[0]
+proc_shape = S_list.shape
+proc_shape += (2*mean.shape[1]+1,)
+proc_data = np.zeros(proc_shape,dtype=mean.dtype)
 
-proc_data = np.zeros((N_row,2*N_meas+1),dtype=np.float64)
 
-proc_data[:,0] = S
+proc_data[:,0] = S_list
 proc_data[:,1::2] = mean
 proc_data[:,2::2] = error
 
+np.savetxt(out,proc_data,fmt="%30.15f")
 
-np.savetxt(out,proc_data,fmt="%20.10e")
+
 

@@ -7,12 +7,12 @@
 
 int main(){
 	// cast simulation object:
-	const int L=100;
+	const int L=10;
 	const int d=1;
-	const int M=1000;
-	const int Nm=100;
+	const int Nm=1000;
+	const int M=get_N<L,d>::N*get_N<L,d>::N+Nm/2;
 	const int mstep=10000;
-	const double S=0.4;
+	const double S=0.2;
 	std::string bc = "pzpz";
 	std::string file = "test_output.dat";
 
@@ -28,7 +28,7 @@ int main(){
 		std::cout << "bin:  " << i+1 << std::endl;
 		q.MCstep();
 		// q.print_opstr(true);
-		// q.write_out();
+		q.write_out();
 	}
 
 	return 0;

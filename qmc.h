@@ -173,7 +173,6 @@ qmc<L,d,M,Nm,mstep>::qmc(const double _S,
 		std::cout << "init_states error: bc not recognized." << std::endl;
 		std::exit(2);
 	}// end bc if tree
-
 }
 
 
@@ -189,7 +188,8 @@ void qmc<L,d,M,Nm,mstep>::write_out_lock(){
 	std::stringstream buffer;
 	buffer << std::setprecision(14) << std::fixed;
 	buffer << std::setw(20) << S;
-	buffer << std::setw(20) << E;
+	buffer << std::setw(20) << Eising;
+	buffer << std::setw(20) << double(Ef)/(double(Et)+1.1e-16);
 	buffer << std::setw(20) << mi;
 	buffer << std::setw(20) << ma;
 	buffer << std::setw(20) << m2;
@@ -230,7 +230,8 @@ void qmc<L,d,M,Nm,mstep>::write_out(){
 	std::stringstream buffer;
 	buffer << std::setprecision(14) << std::fixed;
 	buffer << std::setw(20) << S;
-	buffer << std::setw(20) << E;
+	buffer << std::setw(20) << Eising;
+	buffer << std::setw(20) << double(Ef)/(double(Et)+1.1e-16);
 	buffer << std::setw(20) << mi;
 	buffer << std::setw(20) << ma;
 	buffer << std::setw(20) << m2;
@@ -283,12 +284,11 @@ void qmc<L,d,M,Nm,mstep>::diagonal_update(){
 
 	for(int p=0;p<2*M;p++){
 		if(opstr[p].o1>-2){
-			bool accept=false;
-			while(!accept){
+			while(true){
 				if(ran()*p2<p1){
 					opstr[p].o1=-1; 
 					opstr[p].o2=int(ran()*N);
-					accept=true;
+					break;
 				}
 				else{
 					int ib = 2*int(ran()*Nb);
@@ -297,8 +297,8 @@ void qmc<L,d,M,Nm,mstep>::diagonal_update(){
 					if(spins[i]*spins[j]>0){
 						opstr[p].o1=i;
 						opstr[p].o2=j;
+						break;
 					}
-					accept=true;
 				}
 			}
 		}
@@ -309,7 +309,7 @@ void qmc<L,d,M,Nm,mstep>::diagonal_update(){
 }
 
 
-template<int L,int d,int M, int Nm,int mstep>
+template<int L,int d,int M,int Nm,int mstep>
 void qmc<L,d,M,Nm,mstep>::double_opstr(){
 	std::vector<optype> opstr_1;
 	opstr_1.resize(2*M);
@@ -331,14 +331,12 @@ void qmc<L,d,M,Nm,mstep>::double_opstr(){
 
 template<int L,int d,int M,int Nm,int mstep>
 void qmc<L,d,M,Nm,mstep>::Measurement(){
-	double mprop;
-	int k;
+	double mprop=0;
+	int k=0;
 	for(int i=0;i<N;i++){spins[i]=spinsL[i];}
-	mprop=0;
 	for(int i=0;i<N;i++){mprop+=spins[i];}// end for(int i=0;i<N;i++)
 
 	mprop=mprop/2;
-	k=0;
 	
 	int o1,o2;
 	for(int p=0;p<2*M;p++){
@@ -386,24 +384,21 @@ void qmc<L,d,M,Nm,mstep>::Measurement(){
 
 template<int L,int d,int M,int Nm,int mstep>
 void qmc<L,d,M,Nm,mstep>::beginMeasure(){
-	Eising=0.0;
-	Ef=0.0;
-	Et=0.0;
-	mi=0.0;
-	ma=0.0;
-	m2=0.0;
+	Eising=0;
+	Ef=0;
+	Et=0;
+	mi=0;
+	ma=0;
+	m2=0;
 }
 
 
 template<int L,int d,int M,int Nm,int mstep>
 void qmc<L,d,M,Nm,mstep>::endMeasure(){
-		
-	Eising/=double(N*Nm*mstep);
-	E= -S*Eising - (1.0-S)*double(Ef)/(double(Et)+1.1e-16);
-
-	mi/=(Nm*mstep);
-	ma/=(Nm*mstep);
-	m2/=(Nm*mstep);
+	Eising /= (size_t(mstep)*Nm)*N;
+	mi /= (size_t(mstep)*Nm);
+	ma /= (size_t(mstep)*Nm);
+	m2 /= (size_t(mstep)*Nm);
 
 }
 
@@ -495,7 +490,7 @@ void qmc<L,d,M,Nm,mstep>::visit_cluster(){
 }
 
 
-template<int L,int d,int M, int Nm,int mstep>
+template<int L,int d,int M,int Nm,int mstep>
 void qmc<L,d,M,Nm,mstep>::flip_cluster(){
 	while(!stk.empty()){
 		int v=stk.top(); stk.pop();

@@ -204,12 +204,13 @@ void qaqmc<L,d,M,Nm,mstep>::write_out_lock(){
 	for(int i=0;i<Nm+1;i++){ 
 		update_S(p_list[i]);
 		buffer << std::setw(20) << S;
-		buffer << std::setw(20) << E[i];
+		buffer << std::setw(20) << Eising[i];
+		buffer << std::setw(20) << double(Ef[i])/(double(Et[i])+1.1e-16);
 		buffer << std::setw(20) << mi[i];
 		buffer << std::setw(20) << ma[i];
 		buffer << std::setw(20) << m2[i];
+		buffer << std::endl;
 	}
-	buffer << std::endl;
 
 
  	while(!written){
@@ -248,12 +249,14 @@ void qaqmc<L,d,M,Nm,mstep>::write_out(){
 	for(int i=0;i<Nm+1;i++){ 
 		update_S(p_list[i]);
 		buffer << std::setw(20) << S;
-		buffer << std::setw(20) << E[i];
+		buffer << std::setw(20) << Eising[i];
+		buffer << std::setw(20) << double(Ef[i])/(double(Et[i])+1.1e-16);
 		buffer << std::setw(20) << mi[i];
 		buffer << std::setw(20) << ma[i];
 		buffer << std::setw(20) << m2[i];
+		buffer << std::endl;
 	}
-	buffer << std::endl;
+
 
 	while(!open){ 
 		outstream.open(output_file.c_str(), std::ios::app);
@@ -416,12 +419,12 @@ void qaqmc<L,d,M,Nm,mstep>::Measurement(){
 template<int L,int d,int M,int Nm,int mstep>
 void qaqmc<L,d,M,Nm,mstep>::beginMeasure(){
 	for(int i=0;i<=Nm;i++){
-		Eising[i]=0.0;
-		Ef[i]=0.0;
-		Et[i]=0.0;
-		mi[i]=0.0;
-		ma[i]=0.0;
-		m2[i]=0.0;
+		Eising[i]=0;
+		Ef[i]=0;
+		Et[i]=0;
+		mi[i]=0;
+		ma[i]=0;
+		m2[i]=0;
 	}
 }
 
@@ -431,12 +434,10 @@ void qaqmc<L,d,M,Nm,mstep>::endMeasure(){
 	for(int i=0;i<=Nm;i++){
 		update_S(p_list[i]);
 		
-		Eising[i]/=double(N*mstep);
-		E[i]= -S*Eising[i] - (1.0-S)*double(Ef[i])/(double(Et[i])+1.1e-16);
-
-		mi[i]=mi[i]/mstep;
-		ma[i]=ma[i]/mstep;
-		m2[i]=m2[i]/mstep;
+		Eising[i] /= (N*size_t(mstep));
+		mi[i] /= mstep;
+		ma[i] /= mstep;
+		m2[i] /= mstep;
 	}
 }
 
