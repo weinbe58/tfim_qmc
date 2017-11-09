@@ -1,5 +1,5 @@
-#ifndef __qmc_INCLUDED__
-#define __qmc_INCLUDED__
+#ifndef __proj_INCLUDED__
+#define __proj_INCLUDED__
 
 #include <vector>
 #include <stack>
@@ -31,7 +31,7 @@ struct get_N<L,1>
 
 
 template<int L,int d,int M,int Nm,int mstep>
-class qmc{
+class proj{
 
 	protected:
 		enum{N=get_N<L,d>::N};
@@ -84,7 +84,7 @@ class qmc{
 
 
 	public:
-		qmc(const double,const std::string&,const std::string&);
+		proj(const double,const std::string&,const std::string&);
 
 		void write_out();
 		void write_out_lock();
@@ -97,7 +97,7 @@ class qmc{
 
 
 template<int L,int d,int M,int Nm,int mstep>
-qmc<L,d,M,Nm,mstep>::qmc(const double _S,
+proj<L,d,M,Nm,mstep>::proj(const double _S,
 						const std::string & bc,
 						const std::string & _output_file
 						) : p1(1-_S), p2((2*d-1)*_S+1), S(_S)
@@ -177,7 +177,7 @@ qmc<L,d,M,Nm,mstep>::qmc(const double _S,
 
 
 template<int L,int d,int M,int Nm,int mstep>
-void qmc<L,d,M,Nm,mstep>::write_out_lock(){
+void proj<L,d,M,Nm,mstep>::write_out_lock(){
 	std::string filelock=output_file+".lock";
 	std::ofstream lockstream;
 	std::ofstream outstream; // Stream which the bin averages go to
@@ -221,7 +221,7 @@ void qmc<L,d,M,Nm,mstep>::write_out_lock(){
 
 
 template<int L,int d,int M,int Nm,int mstep>
-void qmc<L,d,M,Nm,mstep>::write_out(){
+void proj<L,d,M,Nm,mstep>::write_out(){
 	std::ofstream outstream; // Stream which the bin averages go to
 	bool written=false;
 	bool open=false;
@@ -251,12 +251,12 @@ void qmc<L,d,M,Nm,mstep>::write_out(){
 }
 
 template<int L,int d,int M,int Nm,int mstep>
-double inline qmc<L,d,M,Nm,mstep>::ran(void){
+double inline proj<L,d,M,Nm,mstep>::ran(void){
 	return dist(gen);
 }
 
 template<int L,int d,int M,int Nm,int mstep>
-void qmc<L,d,M,Nm,mstep>::EQstep(){
+void proj<L,d,M,Nm,mstep>::EQstep(){
 	for(int j=0;j<mstep;j++){
 		diagonal_update();
 		cluster_update();
@@ -265,7 +265,7 @@ void qmc<L,d,M,Nm,mstep>::EQstep(){
 
 
 template<int L,int d,int M,int Nm,int mstep>
-void qmc<L,d,M,Nm,mstep>::MCstep(){
+void proj<L,d,M,Nm,mstep>::MCstep(){
 	beginMeasure();
 	for(int j=0;j<mstep;j++){
 		diagonal_update();
@@ -277,7 +277,7 @@ void qmc<L,d,M,Nm,mstep>::MCstep(){
 
 
 template<int L,int d,int M,int Nm,int mstep>
-void qmc<L,d,M,Nm,mstep>::diagonal_update(){
+void proj<L,d,M,Nm,mstep>::diagonal_update(){
 	for(int i=0;i<N;i++){
 		spins[i]=spinsL[i];
 	}// end for(int i=1;...
@@ -310,7 +310,7 @@ void qmc<L,d,M,Nm,mstep>::diagonal_update(){
 
 
 template<int L,int d,int M,int Nm,int mstep>
-void qmc<L,d,M,Nm,mstep>::double_opstr(){
+void proj<L,d,M,Nm,mstep>::double_opstr(){
 	std::vector<optype> opstr_1;
 	opstr_1.resize(2*M);
 	for(int p=0;p<2*M;p++){opstr_1[p]=opstr[p];}
@@ -330,7 +330,7 @@ void qmc<L,d,M,Nm,mstep>::double_opstr(){
 
 
 template<int L,int d,int M,int Nm,int mstep>
-void qmc<L,d,M,Nm,mstep>::Measurement(){
+void proj<L,d,M,Nm,mstep>::Measurement(){
 	double mprop=0;
 	int k=0;
 	for(int i=0;i<N;i++){spins[i]=spinsL[i];}
@@ -383,7 +383,7 @@ void qmc<L,d,M,Nm,mstep>::Measurement(){
 
 
 template<int L,int d,int M,int Nm,int mstep>
-void qmc<L,d,M,Nm,mstep>::beginMeasure(){
+void proj<L,d,M,Nm,mstep>::beginMeasure(){
 	Eising=0;
 	Ef=0;
 	Et=0;
@@ -394,7 +394,7 @@ void qmc<L,d,M,Nm,mstep>::beginMeasure(){
 
 
 template<int L,int d,int M,int Nm,int mstep>
-void qmc<L,d,M,Nm,mstep>::endMeasure(){
+void proj<L,d,M,Nm,mstep>::endMeasure(){
 	Eising /= (size_t(mstep)*Nm)*N;
 	mi /= (size_t(mstep)*Nm);
 	ma /= (size_t(mstep)*Nm);
@@ -404,7 +404,7 @@ void qmc<L,d,M,Nm,mstep>::endMeasure(){
 
 
 template<int L,int d,int M,int Nm,int mstep>
-void qmc<L,d,M,Nm,mstep>::cluster_update(){
+void proj<L,d,M,Nm,mstep>::cluster_update(){
 	link_verticies();
 
 	// first mark clusters which are attached to end spins which can't be flipped
@@ -472,7 +472,7 @@ void qmc<L,d,M,Nm,mstep>::cluster_update(){
 
 
 template<int L,int d,int M,int Nm,int mstep>
-void qmc<L,d,M,Nm,mstep>::visit_cluster(){
+void proj<L,d,M,Nm,mstep>::visit_cluster(){
 	while(!stk.empty()){
 		int v=stk.top(); stk.pop();
 		if(v >= 8*M) continue;
@@ -491,7 +491,7 @@ void qmc<L,d,M,Nm,mstep>::visit_cluster(){
 
 
 template<int L,int d,int M,int Nm,int mstep>
-void qmc<L,d,M,Nm,mstep>::flip_cluster(){
+void proj<L,d,M,Nm,mstep>::flip_cluster(){
 	while(!stk.empty()){
 		int v=stk.top(); stk.pop();
 		if(v >= 8*M) continue;
@@ -515,7 +515,7 @@ void qmc<L,d,M,Nm,mstep>::flip_cluster(){
 // increasing p
 // <Vl| -> |Vr>
 template<int L,int d,int M,int Nm,int mstep>
-void qmc<L,d,M,Nm,mstep>::link_verticies(){
+void proj<L,d,M,Nm,mstep>::link_verticies(){
 	for(int i=0; i<N; i++){ Vl[i] = Vr[i] = -1; }
 	for(int i=0; i<8*M; i++){ X[i]=-1; }
 	for(int p=0; p<2*M;p++){
@@ -562,7 +562,7 @@ void qmc<L,d,M,Nm,mstep>::link_verticies(){
 
 
 template<int L,int d,int M,int Nm,int mstep>
-void qmc<L,d,M,Nm,mstep>::print_opstr(bool link){
+void proj<L,d,M,Nm,mstep>::print_opstr(bool link){
 	std::cout << "p=   ";
 	for(int p=0;p<2*M;p++){
 		std::cout << p << " ";

@@ -1,6 +1,6 @@
 
 
-#include "qmc.h"
+#include "proj.h"
 #include <iostream>
 
 
@@ -16,7 +16,7 @@ int main(){
 	std::string bc = "pzpz";
 	std::string file = "test_output.dat";
 
-	qmc<L,d,M,Nm,mstep> q(S,bc,file);
+	proj<L,d,M,Nm,mstep> q(S,bc,file);
 
 	for(int i=0;i<3;i++){
 		std::cout << "eq:  " << i+1 << std::endl;
