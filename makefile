@@ -7,9 +7,12 @@ CD=.
 Inc= -I $(CD)
 
 
-test_qaqmc.out: $(CD)/test_qaqmc.cpp $(CD)/qaqmc.h
-	$(CC) $(Opt) $(Inc) -o test_qaqmc.out $(CD)/test_qaqmc.cpp 
+test_template_qaqmc.out: $(CD)/test_template_qaqmc.cxx $(CD)/template_qaqmc.h
+	$(CC) $(Opt) $(Inc) -o test_template_qaqmc.out $(CD)/test_template_qaqmc.cxx 
 
-test_proj.out: $(CD)/test_proj.cpp $(CD)/proj.h
-	$(CC) $(Opt) $(Inc) -o test_proj.out $(CD)/test_proj.cpp 
+test_template_proj.out: $(CD)/test_template_proj.cxx $(CD)/template_proj.h
+	$(CC) $(Opt) $(Inc) -o test_template_proj.out $(CD)/test_template_proj.cxx 
 
+all:
+	make test_template_qaqmc.out
+	make test_template_proj.out
