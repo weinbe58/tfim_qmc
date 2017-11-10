@@ -302,13 +302,15 @@ void qaqmc<L,d,M,Nm,mstep>::diagonal_update(){
 		if(opstr[p].o1>-2){
 			bool accept=false;
 			update_S(p);
-			double p1 = (1-S);
-			double p2 = ((2*d-1)*S+1);
-			while(!accept){
+			JJ = S;
+			hh = (1-S);
+			double p1 = hh;
+			double p2 = (2*d*JJ+hh);
+			while(true){
 				if(ran()*p2<p1){
 					opstr[p].o1=-1; 
 					opstr[p].o2=int(ran()*N);
-					accept=true;
+					break;
 				}
 				else{
 					int ib = 2*int(ran()*Nb);
@@ -317,8 +319,9 @@ void qaqmc<L,d,M,Nm,mstep>::diagonal_update(){
 					if(spins[i]*spins[j]>0){
 						opstr[p].o1=i;
 						opstr[p].o2=j;
+						break;
 					}
-					accept=true;
+					
 				}
 			}
 		}

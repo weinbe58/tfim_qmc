@@ -12,12 +12,11 @@
 #include <cmath>
 #include <random>
 #include <algorithm>
-#include "opstr_iterator.h"
-
+#include "state_iterator.h"
+#include "optype.h"
 
 
 class base{
-
 	protected:
 		int M;
 		const int Fl;
@@ -29,8 +28,8 @@ class base{
 		std::vector<signed char> sL;
 
 
-		std::std::vector<int>  Vl;
-		std::std::vector<int>  Vr;
+		std::vector<int>  Vl;
+		std::vector<int>  Vr;
 
 		std::mt19937_64 gen;
 		std::uniform_real_distribution<double> dist;
@@ -38,31 +37,32 @@ class base{
 		std::vector<optype> opstr;
 		std::stack<int> stk;
 		std::vector<int> X;
-		std::vector<bool> Measure;
 
 		// private functions:
 		void link_verticies();
 		void visit_cluster();
 		void flip_cluster();
-		void print_opstr(bool);
+		
 		double inline ran(void);
 
 
 	public:
-		base(int,const int, const int, const int *,const int,const int,
+		base(int,const int, const int,const int,
 			const std::vector<signed char>,const std::vector<signed char>);
-		base(int,const int, const int, const int *,const int,const int);
-		~base();
-		opstr_iterator begin() {return opstr_iterator(sL,opstr.begin());}
-		opstr_iterator end() {return opstr_iterator(sL,opstr.end());}
+		base(int,const int);
+		~base() {};
+		std::vector<optype>::iterator opstr_begin() {return opstr.begin();}
+		std::vector<optype>::iterator opstr_end() {return opstr.end();}
+		state_iterator state_begin() {return state_iterator(sL,opstr.begin(),opstr.end());}
+		state_iterator state_end() {return state_iterator(sL,opstr.end(),opstr.end());}
+		void print_opstr(bool);
 		void cluster_update();
+		int get_M(void);
 
 };
 
-
-
 base::base( int _M,
-			const int _N,
+			const int _N
 			) : M(_M), N(_N), Fl(0), Fr(0)
 {
 
@@ -77,7 +77,7 @@ base::base( int _M,
 
 	if((Fl==0) != (Fr==0)){
 		std::cout << "Fr and Fl must both be equal to 0." << std::endl;
-		exit(-1)
+		exit(-1);
 	}
 
 	opstr.resize(M);
@@ -87,12 +87,12 @@ base::base( int _M,
 	sP.resize(N);
 	
 	for(int i=0;i<N;i++){
-		int s = 2*int(ran())-1
+		int s = 2*int(ran())-1;
 		sR.push_back(s);
 	}
 
 	for(auto s : sR){
-		sL.push_back(s)
+		sL.push_back(s);
 	}
 }
 
@@ -116,7 +116,7 @@ base::base( int _M,
 
 	if((Fl==0) != (Fr==0)){
 		std::cout << "Fr and Fl must both be equal to 0." << std::endl;
-		exit(-1)
+		exit(-1);
 	}
 
 	opstr.resize(M);
@@ -126,16 +126,18 @@ base::base( int _M,
 	sP.resize(N);
 	
 	for(auto s : _sR){
-		sR.push_back(s)
+		sR.push_back(s);
 	}
 
 	for(auto s : _sL){
-		sL.push_back(s)
+		sL.push_back(s);
 	}
 }
 
 
-
+int base::get_M(){
+	return M;
+}
 
 
 
@@ -319,7 +321,10 @@ void base::print_opstr(bool link){
 			std::cout << "-";
 			int o1=opstr[p].o1;
 			int o2=opstr[p].o2;
-			if(o1 >= 0){
+			if(o2 < 0){
+				std::cout << "--";
+			}
+			else if(o1 >= 0){
 				if(o1==i || o2==i){ std::cout << "J";	}
 				else{ std::cout << "-"; }
 			}
