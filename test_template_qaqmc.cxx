@@ -1,6 +1,6 @@
 
 
-#include "qaqmc.h"
+#include "template_qaqmc.h"
 #include <iostream>
 
 
