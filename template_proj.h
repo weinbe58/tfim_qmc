@@ -100,7 +100,7 @@ template<int L,int d,int M,int Nm,int mstep>
 proj<L,d,M,Nm,mstep>::proj(const double _S,
 						const std::string & bc,
 						const std::string & _output_file
-						) : p1(1-_S), p2((2*d-1)*_S+1), S(_S)
+						) : p1(1-_S), p2(2*d*_S+(1-_S)), S(_S)
 {
 	output_file = _output_file;
 
@@ -133,11 +133,14 @@ proj<L,d,M,Nm,mstep>::proj(const double _S,
 	int dm=0;
 
 	if(Nm>2*M){ std::cout << "Nm is too large." << std::endl; std::exit(3);}
-
+	if(Nm<=0){
+		std::cout << "Nm must be greater than 0." << std::endl;
+		std::exit(3);
+	}
 
 	for(int i=0;i<=2*M;i++){ Measure[i]=false; }
 
-	for(int i= -Nm/2;i<=Nm/2;i++){ 
+	for(int i=-Nm/2;i<=Nm/2;i++){ 
 		Measure[M+i]=true;
 	}
 
@@ -287,11 +290,11 @@ void proj<L,d,M,Nm,mstep>::diagonal_update(){
 			while(true){
 				if(ran()*p2<p1){
 					opstr[p].o1=-1; 
-					opstr[p].o2=int(ran()*N);
+					opstr[p].o2=std::floor(ran()*N);
 					break;
 				}
 				else{
-					int ib = 2*int(ran()*Nb);
+					int ib = 2*std::floor(ran()*Nb);
 					int i = bst[ib];
 					int j = bst[ib+1];
 					if(spins[i]*spins[j]>0){
@@ -342,17 +345,23 @@ void proj<L,d,M,Nm,mstep>::Measurement(){
 	for(int p=0;p<2*M;p++){
 		o1=opstr[p].o1;
 		o2=opstr[p].o2;
+		// if(p==M){
+		// 	for(int i=0;i<N;i++){std::cout << int(spins[i]) << std::setw(4);}
+		// 	std::cout << std::endl;
+		// }
 		if(Measure[p]){
+			double ising = 0;
 			for(int b=0;b<Nb;b++){
 				int i=bst[2*b];
 				int j=bst[2*b+1];
-				Eising += spins[i]*spins[j];
+				ising += spins[i]*spins[j];
 			}
 
 			if(o1==-1){Et++;}
 			else if(o1==-2){Ef++;}
 
-			double Mag=mprop/N;
+			Eising += ising/N;
+			double Mag=2*mprop/N;
 			mi+=Mag;
 			ma+=std::abs(Mag);
 			m2+=Mag*Mag;
@@ -374,7 +383,7 @@ void proj<L,d,M,Nm,mstep>::Measurement(){
 		if(o1==-1){Et++;}
 		else if(o1==-2){Ef++;}
 
-		double Mag=mprop/N;
+		double Mag=2*mprop/N;
 		mi+=Mag;
 		ma+=std::abs(Mag);
 		m2+=Mag*Mag;
@@ -395,10 +404,11 @@ void proj<L,d,M,Nm,mstep>::beginMeasure(){
 
 template<int L,int d,int M,int Nm,int mstep>
 void proj<L,d,M,Nm,mstep>::endMeasure(){
-	Eising /= (size_t(mstep)*Nm)*N;
+	Eising /= (size_t(mstep)*Nm);
 	mi /= (size_t(mstep)*Nm);
 	ma /= (size_t(mstep)*Nm);
 	m2 /= (size_t(mstep)*Nm);
+	// std::cout << mi << std::endl;
 
 }
 
@@ -429,15 +439,46 @@ void proj<L,d,M,Nm,mstep>::cluster_update(){
 		}
 	}
 
-	// flipping cluster with 50/50 probability on all clusters which have not been visited
+	// attempt with 50/50 probability to flip clusters which are attached to end spins which can be flipped
+	// left side first
+	if(Fl==1){
+		for(int i=0;i<N;i++){
+			if(Vl[i]>=0 && X[Vl[i]]>=0){
+				stk.push(Vl[i]);
+				if(ran()>=0.5){
+					flip_cluster();
+				}
+				else{
+					visit_cluster();
+				}
+			}
+		}
+	}
+
+	// right side next
+	if(Fr==1){
+		for(int i=0;i<N;i++){
+			if(Vr[i]>=0 && X[Vr[i]]>=0){
+				stk.push(Vr[i]);
+				if(ran()>=0.5){
+					flip_cluster();
+				}
+				else{
+					visit_cluster();
+				}
+			}
+		}
+	}
+
+	// flipping bluk cluster with 50/50 probability on all clusters which have not been visited
 	for(int v0=0;v0<8*M;v0++){
 		if(X[v0]>=0){
 			int p=v0/4;
 			if(opstr[p].o1<0){
 				int v1=X[v0];
-				stk.push(v1);;
+				stk.push(v1);
 				if(ran()>=0.5){
-					opstr[p].o1=(opstr[p].o1^1); // flip operator with some bit operation
+					opstr[p].o1^=1; // flip operator with some bit operation
 					X[v0]=-2;
 					flip_cluster();
 				}
@@ -454,7 +495,7 @@ void proj<L,d,M,Nm,mstep>::cluster_update(){
 		for(int i=0;i<N;i++){
 			int vl=Vl[i];
 			if(vl==-1){
-				if(ran()<0.5){spinsL[i]*=-1;spinsR[i]*=-1;}
+				if(ran()>=0.5){spinsL[i]*=-1;spinsR[i]*=-1;}
 			}
 			else{
 				if(X[vl]==-2){spinsL[i]*=-1;spinsR[i]*=-1;}
@@ -464,8 +505,12 @@ void proj<L,d,M,Nm,mstep>::cluster_update(){
 	else{
 		for(int i=0;i<N;i++){
 			int vl=Vl[i];	int vr=Vr[i];
-			if(vl!=-1){ if(X[vl]==-2){spinsL[i]*=-1;} }
-			if(vr!=-1){ if(X[vr]==-2){spinsR[i]*=-1;} }
+			if(vl!=-1 && X[vl]==-2){spinsL[i]*=-1;}
+			if(vr!=-1 && X[vr]==-2){spinsR[i]*=-1;}
+			if(Fl==1 && Fr==1 && vr==-1 && vl==-1 && ran()>=0.5){ // flip spins disconnected from operators
+				spinsL[i]*=-1;spinsR[i]*=-1;
+			}
+
 		}
 	}
 }
@@ -506,7 +551,7 @@ void proj<L,d,M,Nm,mstep>::flip_cluster(){
 			}// end for(int v1=v+1;...
 		}
 		else{
-			opstr[p].o1=(opstr[p].o1^1); // flip operator with some bit operation
+			opstr[p].o1^=1; // flip operator with some bit operation
 		}// end if(opstr[p].o1>=0)
 	}// end while(stk.empty()!) 
 }

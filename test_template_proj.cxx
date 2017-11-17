@@ -7,14 +7,14 @@
 
 int main(){
 	// cast simulation object:
-	const int L=10;
+	const int L=4;
 	const int d=1;
-	const int Nm=1000;
-	const int M=get_N<L,d>::N*get_N<L,d>::N+Nm/2;
+	const int Nm=1;
+	const int M=40*get_N<L,d>::N*get_N<L,d>::N+Nm/2;
 	const int mstep=10000;
-	const double S=0.2;
+	const double S=0.5;
 	std::string bc = "pzpz";
-	std::string file = "test_output.dat";
+	std::string file = "test_output_2.dat";
 
 	proj<L,d,M,Nm,mstep> q(S,bc,file);
 

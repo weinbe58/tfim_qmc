@@ -35,7 +35,7 @@ void sse_base::diagonal_update(){
 	// std::cout << std::endl;
 
 	for(int p=0;p<base::M;p++){
-		if(base::opstr[p].o2<0){
+		if(base::opstr[p].o2 == -1){
 			add_op(p);
 		}
 		else if(base::opstr[p].o1>-2){// try to remove diagonal operator
@@ -49,6 +49,7 @@ void sse_base::diagonal_update(){
 
 void sse_base::check_M(){
 	int Mnew=(Nop*4)/3;
+	// std::cout << Nop << std::setw(10) << base::M << std::endl;
 	if(Mnew > base::M){	
 		std::vector<optype> opstr_temp(base::opstr);
 		base::opstr.resize(Mnew);

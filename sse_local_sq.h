@@ -1,2 +1,0 @@
-#ifndef __sse_local_INCLUDED__
-#define __sse_local_INCLUDED__

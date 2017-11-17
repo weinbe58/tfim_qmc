@@ -5,16 +5,17 @@
 
 
 
+
 int main(){
 	// cast simulation object:
 	const int L=10;
 	const int d=1;
-	const int M=10000;
-	const int Nm=100;
-	const int mstep=10000;
-	const double S_i=1.0;
-	const double S_f=0.0;
-	std::string bc = "pzpz";
+	const int M=10;
+	const int Nm=0;
+	const int mstep=100000;
+	const double S_i=0.0;
+	const double S_f=1.0;
+	std::string bc = "pxpx";
 	std::string file = "test_output.dat";
 
 	qaqmc<L,d,M,Nm,mstep> q(S_i,S_f,bc,file);

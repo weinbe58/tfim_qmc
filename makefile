@@ -1,7 +1,7 @@
 
 ### Sets the particular extensions used in this makefile.
 CC=g++
-Opt=-O3 -std=c++11
+Opt=-O3 -std=c++11 -Wall
 CD=.
 
 Inc= -I $(CD)

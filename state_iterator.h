@@ -33,7 +33,6 @@ public:
 		p++;
 		while(opstr->o1 > -2  && opstr != opstr_end){
 			opstr++;
-			// std::cout << opstr->o1 << "  " << opstr->o2 << std::endl;
 			p++;
 		}
 

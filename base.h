@@ -57,7 +57,9 @@ class base{
 		state_iterator state_end() {return state_iterator(sL,opstr.end(),opstr.end());}
 		void print_opstr(bool);
 		void cluster_update();
-		int get_M(void);
+		virtual void diagonal_update() = 0;
+		int inline get_M(void) {return M;}
+		int inline get_N(void)	{return N;}
 
 };
 
@@ -87,7 +89,7 @@ base::base( int _M,
 	sP.resize(N);
 	
 	for(int i=0;i<N;i++){
-		int s = 2*int(ran())-1;
+		int s = 2*std::floor(2*ran())-1;
 		sR.push_back(s);
 	}
 
@@ -135,18 +137,10 @@ base::base( int _M,
 }
 
 
-int base::get_M(){
-	return M;
-}
-
-
 
 double inline base::ran(void){
 	return dist(gen);
 }
-
-
-
 
 
 void base::cluster_update(){
@@ -174,15 +168,46 @@ void base::cluster_update(){
 		}
 	}
 
-	// flipping cluster with 50/50 probability on all clusters which have not been visited
+	// attempt with 50/50 probability to flip clusters which are attached to end spins which can be flipped
+	// left side first
+	if(Fl==1){
+		for(int i=0;i<N;i++){
+			if(Vl[i]>=0 && X[Vl[i]]>=0){
+				stk.push(Vl[i]);
+				if(ran()>=0.5){
+					flip_cluster();
+				}
+				else{
+					visit_cluster();
+				}
+			}
+		}
+	}
+
+	// right side next
+	if(Fr==1){
+		for(int i=0;i<N;i++){
+			if(Vr[i]>=0 && X[Vr[i]]>=0){
+				stk.push(Vr[i]);
+				if(ran()>=0.5){
+					flip_cluster();
+				}
+				else{
+					visit_cluster();
+				}
+			}
+		}
+	}
+
+	// flipping bluk cluster with 50/50 probability on all clusters which have not been visited
 	for(int v0=0;v0<4*M;v0++){
 		if(X[v0]>=0){
 			int p=v0/4;
 			if(opstr[p].o1<0){
 				int v1=X[v0];
-				stk.push(v1);;
+				stk.push(v1);
 				if(ran()>=0.5){
-					opstr[p].o1=(opstr[p].o1^1); // flip operator with some bit operation
+					opstr[p].o1^=1; // flip operator with some bit operation
 					X[v0]=-2;
 					flip_cluster();
 				}
@@ -199,7 +224,7 @@ void base::cluster_update(){
 		for(int i=0;i<N;i++){
 			int vl=Vl[i];
 			if(vl==-1){
-				if(ran()<0.5){sL[i]*=-1;sR[i]*=-1;}
+				if(ran()>=0.5){sL[i]*=-1;sR[i]*=-1;}
 			}
 			else{
 				if(X[vl]==-2){sL[i]*=-1;sR[i]*=-1;}
@@ -209,8 +234,12 @@ void base::cluster_update(){
 	else{
 		for(int i=0;i<N;i++){
 			int vl=Vl[i];	int vr=Vr[i];
-			if(vl!=-1){ if(X[vl]==-2){sL[i]*=-1;} }
-			if(vr!=-1){ if(X[vr]==-2){sR[i]*=-1;} }
+			if(vl!=-1 && X[vl]==-2){sL[i]*=-1;}
+			if(vr!=-1 && X[vr]==-2){sR[i]*=-1;}
+			if(Fl==1 && Fr==1 && vr==-1 && vl==-1 && ran()>=0.5){ // flip spins disconnected from operators
+				sL[i]*=-1;sR[i]*=-1;
+			}
+
 		}
 	}
 }
@@ -251,7 +280,7 @@ void base::flip_cluster(){
 			}// end for(int v1=v+1;...
 		}
 		else{
-			opstr[p].o1=(opstr[p].o1^1); // flip operator with some bit operation
+			opstr[p].o1^=1; // flip operator with some bit operation
 		}// end if(opstr[p].o1>=0)
 	}// end while(stk.empty()!) 
 }
@@ -259,7 +288,6 @@ void base::flip_cluster(){
 
 // increasing p
 // <Vl| -> |Vr>
-
 void base::link_verticies(){
 	for(int i=0; i<N; i++){ Vl[i] = Vr[i] = -1; }
 	for(int i=0; i<4*M; i++){ X[i]=-1; }
@@ -296,15 +324,14 @@ void base::link_verticies(){
 			if(Vr[i]>=0){ X[Vr[i]]=4*M+N+i;}
 		}	
 	}
-	else{
+	else if(Fl==0 && Fr==0){
 		for(int i=0;i<N;i++){
 			int f=Vl[i];
 			if(f!=-1){ int l=Vr[i]; X[f]=l; X[l]=f;}
 		}
 	}
-
+	else{ std::cout << "boundary mismatch" << std::endl; std::exit(11);}//end if(Fl!=0 && Fr!=0)
 }
-
 
 
 void base::print_opstr(bool link){
@@ -321,10 +348,7 @@ void base::print_opstr(bool link){
 			std::cout << "-";
 			int o1=opstr[p].o1;
 			int o2=opstr[p].o2;
-			if(o2 < 0){
-				std::cout << "--";
-			}
-			else if(o1 >= 0){
+			if(o1 >= 0){
 				if(o1==i || o2==i){ std::cout << "J";	}
 				else{ std::cout << "-"; }
 			}
@@ -356,5 +380,4 @@ void base::print_opstr(bool link){
 		}
 	}
 }
-
 #endif

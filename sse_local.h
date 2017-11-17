@@ -9,22 +9,22 @@ class sse_local : public sse_base{
 	protected:
 		const int * bst;
 		const int Nb;
-		const double W,WJ,Wh;
+		const double W,Wh;
 		double beta;
 
 		void add_op(int);
 		void remove_op(int);
 
 	public:
-		sse_local(const int, const int, const int[],const double, const double);
+		sse_local(double,const int, const int, const int[],const double);
 		~sse_local() {};
 
 };
 
-sse_local::sse_local(const int _N,const int _Nb, const int _bst[], const double _S, const double _beta) 
-: sse_base::sse_base(_N), Nb(_Nb), bst(_bst), beta(_beta), WJ(2*_Nb*(1-_S)), Wh(_N*_S), W(2*_Nb*(1-_S)+_N*_S) {
+sse_local::sse_local(double _beta,const int _N,const int _Nb, const int _bst[], const double _S) 
+: sse_base::sse_base(_N), Nb(_Nb), bst(_bst), beta(_beta), Wh(_N*(1-_S)), W(2*_Nb*_S+_N*(1-_S)) {
 	for(int i=0;i<2*Nb;i++){
-		if(bst[i]<0 || bst[i]>=N){
+		if(bst[i]<0 || bst[i]>=_N){
 			std::cout << "bond index out of bounds" << std::endl;
 			exit(-2);
 		}
@@ -38,7 +38,7 @@ sse_local::sse_local(const int _N,const int _Nb, const int _bst[], const double 
 
 void sse_local::add_op(int p){
 	if(base::ran()*(base::M - sse_base::Nop + beta*W) < beta*W){
-		if(base::ran()*(Wh+WJ)<Wh){
+		if(base::ran()*W<Wh){
 			base::opstr[p].o1=-1; 
 			base::opstr[p].o2=std::floor(base::ran()*base::N);
 			sse_base::Nop++;
