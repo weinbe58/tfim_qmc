@@ -18,6 +18,7 @@ class sse_local : public sse_base{
 	public:
 		sse_local(double,const int, const int, const int[],const double);
 		~sse_local() {};
+		int get_Nb() {return Nb;}
 
 };
 
