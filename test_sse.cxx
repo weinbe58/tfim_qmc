@@ -1,8 +1,6 @@
 
 
-#include "proj_local.h"
-#include "qaqmc_local.h"
-
+#include "sse_local.h"
 #include <iostream>
 #include <iomanip>
 #include <tuple>
@@ -24,48 +22,47 @@ void sq_lattice(int L,int d,std::vector<int> &bst){
 	}
 }
 
-void EQsweep(qaqmc_local &qmc,int mstep){
+void EQsweep(sse_local &qmc,int mstep){
 	for(int i=0;i<mstep;i++){
 		qmc.diagonal_update();
 		qmc.cluster_update();
+		qmc.check_M();
 	}
 }
 
-void MCsweep(qaqmc_local &qmc,int mstep,double &ma,double &m2,double &m4){
+void MCsweep(sse_local &qmc,int mstep,double &ma,double &m2,double &m4){
 	ma = m2 = m4 = 0;
 	int N = qmc.get_N();
 	int Nb = qmc.get_Nb();
+	int M = qmc.get_M();
 	std::vector<signed char> spins(N,0);
 	for(int i=0;i<mstep;i++){
 		qmc.diagonal_update();
 		qmc.cluster_update();
-		qmc.midpoint(spins.begin());
-		double mtemp = 0;
-		for(int i=0;i<N;i++){
-			mtemp+=spins[i];
+		// qmc.print_opstr(false);
+		for(auto tup=qmc.state_begin();tup!=qmc.state_end();tup++){
+			double mm = std::get<2>(*tup);
+			int n = std::get<1>(*tup);
+			ma += n*std::abs(mm);
+			m2 += n*std::pow(mm,2);
+			m4 += n*std::pow(mm,4);
 		}
-
-		ma += std::abs(mtemp);
-		m2 += std::pow(mtemp,2);
-		m4 += std::pow(mtemp,4);
 	}
 
-	ma /= (mstep+1.1e-15);
-	m2 /= (mstep+1.1e-15);
-	m4 /= (mstep+1.1e-15);
+	ma /= (M*size_t(mstep)+1.1e-15);
+	m2 /= (M*size_t(mstep)+1.1e-15);
+	m4 /= (M*size_t(mstep)+1.1e-15);
 }
 
 
-double sfunc(double t){
-	// std::cout << t << std::endl;
-	return t;
-}
+
 
 int main(int argc, char const *argv[])
 {
-	int L = 10;
+	int L = 4;
 	int d = 1;
-	int M = 10;
+	double beta = 0.1;
+	double S = 0.0;
 	int N = int(std::pow(double(L),d));
 
 	std::vector<signed char> bc;
@@ -81,7 +78,7 @@ int main(int argc, char const *argv[])
 	double eJ,ma,m2,m4;
 
 	// proj_local qmc(2*M,N,d*N,bst.data(),S,1,1,bc,bc);
-	qaqmc_local qmc(2*M,N,d*N,bst.data(),&sfunc,1,1,bc,bc);
+	sse_local qmc(beta,N,d*N,bst.data(),S);
 	for(int i=0;i<5;i++){
 		EQsweep(qmc,10000);
 	}

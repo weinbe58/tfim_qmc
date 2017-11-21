@@ -53,8 +53,8 @@ class base{
 		~base() {};
 		std::vector<optype>::iterator opstr_begin() {return opstr.begin();}
 		std::vector<optype>::iterator opstr_end() {return opstr.end();}
-		state_iterator state_begin() {return state_iterator(sL,opstr.begin(),opstr.end());}
-		state_iterator state_end() {return state_iterator(sL,opstr.end(),opstr.end());}
+		state_iterator state_begin() {return state_iterator(sL,opstr.begin(),0,M);}
+		state_iterator state_end() {return state_iterator(sL,opstr.end(),M+1,M);}
 		void print_opstr(bool);
 		void cluster_update();
 		virtual void diagonal_update() = 0;
