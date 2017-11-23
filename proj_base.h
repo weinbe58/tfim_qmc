@@ -2,6 +2,8 @@
 #define __proj_base_INCLUDED__
 
 #include "base.h"
+#include <algorithm>
+#include <vector>
 
 class proj_base : public base{
 	protected:
@@ -66,10 +68,7 @@ void proj_base::midpoint(std::vector<signed char>::iterator spins){
 		p++;
 	}
 
-	for(auto s : base::sP){
-		*spins = s;
-		spins++;
-	}
+	std::copy(base::sP.begin(),base::sP.end(),spins);
 	
 }
 
@@ -107,7 +106,7 @@ void proj_base::diagonal_update(std::vector<signed char>::iterator spins){
 			base::sP[ base::opstr[p].o2 ] *= -1;
 		}// end (opstr_l[p].o2<0)
 	}
-	for(auto s:sP){*spins = s;spins++;}
+	std::copy(sP.begin(),sP.end(),spins);
 	for(int p=MM;p<base::M;p++){
 		if(base::opstr[p].o1>-2){
 			move_op(p);
@@ -135,7 +134,7 @@ void proj_base::diagonal_update(std::vector<signed char>::iterator spins,int &np
 			base::sP[ base::opstr[p].o2 ] *= -1;
 		}// end (opstr_l[p].o2<0)
 	}
-	for(auto s:sP){*spins = s;spins++;}
+	std::copy(sP.begin(),sP.end(),spins);
 	if(base::opstr[MM].o1==-2){
 		if(base::sP[ base::opstr[MM].o2 ]==-1){np++;}
 		else{nm++;}

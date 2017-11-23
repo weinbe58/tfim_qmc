@@ -57,7 +57,7 @@ void qaqmc_local::move_op(int p){
 	else{
 		S = S_func(1.0,rpar,ipar) - S_func(double(p-MM)/MM,rpar,ipar);
 	}
-	double W = 2*Nb*S + base::N*(1-S);;
+	double W = 2*Nb*S + base::N*(1-S);
 	while(true){
 		if(base::ran()*W< base::N*(1-S) ){
 			base::opstr[p].o1=-1; 
