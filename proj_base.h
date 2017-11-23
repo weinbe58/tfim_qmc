@@ -9,6 +9,7 @@ class proj_base : public base{
 
 	public:
 		proj_base(int,const int,const int, const int, const std::vector<signed char>,const std::vector<signed char>);
+		proj_base(int,const int,const int, const int);
 		proj_base(int,const int);
 		~proj_base() {};
 
@@ -17,6 +18,7 @@ class proj_base : public base{
 		void diagonal_update(std::vector<signed char>::iterator,int&,int&,int&);
 		void double_M();
 		void midpoint(std::vector<signed char>::iterator);
+		void initialize_opstr();
 };
 
 
@@ -26,19 +28,27 @@ proj_base::proj_base( int _M,
 			const int _Fr,
 			const std::vector<signed char> _sL,
 			const std::vector<signed char> _sR) : base::base(_M,_N,_Fl,_Fr,_sL,_sR) {
-	for(int p=0;p<base::M;p++){
-		base::opstr[p].o1=-1;
-		base::opstr[p].o2=std::floor(base::N*base::ran());
-	}
+	initialize_opstr();
+}
+
+proj_base::proj_base( int _M,
+			const int _N,
+			const int _Fl,
+			const int _Fr) : base::base(_M,_N,_Fl,_Fr) {
+	initialize_opstr();
 }
 
 proj_base::proj_base( int _M, const int _N) : base::base(_M,_N) {
+	initialize_opstr();
+}
+
+
+void proj_base::initialize_opstr(){
 	for(int p=0;p<base::M;p++){
 		base::opstr[p].o1=-1;
 		base::opstr[p].o2=std::floor(base::N*base::ran());
 	}
 }
-
 
 void proj_base::midpoint(std::vector<signed char>::iterator spins){
 	for(int i=0;i<base::N;i++){
