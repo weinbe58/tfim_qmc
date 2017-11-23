@@ -19,8 +19,7 @@ class proj_local : public proj_base{
 		const std::vector<signed char>,const std::vector<signed char>);
 		~proj_local() {};
 
-		int get_Nb() {return Nb;}
-		
+		int inline get_Nb() {return Nb;}	
 
 };
 
