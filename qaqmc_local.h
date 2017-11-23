@@ -21,6 +21,7 @@ class qaqmc_local : public proj_base{
 			const std::vector<signed char>,const std::vector<signed char>);
 		~qaqmc_local() {};
 		int get_Nb() {return Nb;}
+		
 
 };
 
