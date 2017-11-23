@@ -14,6 +14,8 @@ class proj_base : public base{
 		~proj_base() {};
 
 		void diagonal_update(void);
+		void diagonal_update(std::vector<signed char>::iterator);
+		void diagonal_update(std::vector<signed char>::iterator,int&,int&,int&);
 		void double_M();
 		void midpoint(std::vector<signed char>::iterator);
 		void initialize_opstr();
@@ -80,6 +82,68 @@ void proj_base::diagonal_update(){
 	// std::cout << std::endl;
 
 	for(int p=0;p<base::M;p++){
+		if(base::opstr[p].o1>-2){
+			move_op(p);
+		}
+		else{
+			base::sP[ base::opstr[p].o2 ] *= -1;
+		}// end (opstr_l[p].o2<0)
+	}
+}
+
+void proj_base::diagonal_update(std::vector<signed char>::iterator spins){
+	// this->print_opstr(false);
+	for(int i=0;i<base::N;i++){
+		base::sP[i]=base::sL[i];
+		// std::cout << int(base::sL[i]) << "  ";
+	}// end for(int i=1;...
+	// std::cout << std::endl;
+	int MM = base::M/2;
+	for(int p=0;p<MM;p++){
+		if(base::opstr[p].o1>-2){
+			move_op(p);
+		}
+		else{
+			base::sP[ base::opstr[p].o2 ] *= -1;
+		}// end (opstr_l[p].o2<0)
+	}
+	for(auto s:sP){*spins = s;spins++;}
+	for(int p=MM;p<base::M;p++){
+		if(base::opstr[p].o1>-2){
+			move_op(p);
+		}
+		else{
+			base::sP[ base::opstr[p].o2 ] *= -1;
+		}// end (opstr_l[p].o2<0)
+	}
+}
+
+
+void proj_base::diagonal_update(std::vector<signed char>::iterator spins,int &np,int &nm,int &nt){
+	// this->print_opstr(false);
+	for(int i=0;i<base::N;i++){
+		base::sP[i]=base::sL[i];
+		// std::cout << int(base::sL[i]) << "  ";
+	}// end for(int i=1;...
+	// std::cout << std::endl;
+	int MM = base::M/2;
+	for(int p=0;p<MM;p++){
+		if(base::opstr[p].o1>-2){
+			move_op(p);
+		}
+		else{
+			base::sP[ base::opstr[p].o2 ] *= -1;
+		}// end (opstr_l[p].o2<0)
+	}
+	for(auto s:sP){*spins = s;spins++;}
+	if(base::opstr[MM].o1==-2){
+		if(base::sP[ base::opstr[MM].o2 ]==-1){np++;}
+		else{nm++;}
+	}
+	else if(base::opstr[MM].o1==-1){
+		nt++;
+	}
+	for(int p=MM;p<base::M;p++){
 		if(base::opstr[p].o1>-2){
 			move_op(p);
 		}
