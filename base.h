@@ -49,6 +49,7 @@ class base{
 	public:
 		base(int,const int, const int,const int,
 			const std::vector<signed char>,const std::vector<signed char>);
+		base(int,const int, const int,const int);
 		base(int,const int);
 		~base() {};
 		std::vector<optype>::iterator opstr_begin() {return opstr.begin();}
@@ -58,6 +59,8 @@ class base{
 		void print_opstr(bool);
 		void cluster_update();
 		virtual void diagonal_update() = 0;
+		void initialize_kets();
+		void initialize_kets(const std::vector<signed char>,const std::vector<signed char>);
 		int inline get_M(void) {return M;}
 		int inline get_N(void) {return N;}
 
@@ -88,6 +91,11 @@ base::base( int _M,
 	Vr.resize(N);
 	sP.resize(N);
 	
+	initialize_kets();
+}
+
+
+void base::initialize_kets(){
 	for(int i=0;i<N;i++){
 		int s = 2*std::floor(2*ran())-1;
 		sR.push_back(s);
@@ -95,6 +103,16 @@ base::base( int _M,
 
 	for(auto s : sR){
 		sL.push_back(s);
+	}
+}
+
+
+void base::initialize_kets(const std::vector<signed char> _sL,const std::vector<signed char> _sR){
+	for(auto s : _sL){
+		sL.push_back(s);
+	}
+	for(auto s : _sR){
+		sR.push_back(s);
 	}
 }
 
@@ -127,16 +145,38 @@ base::base( int _M,
 	Vr.resize(N);
 	sP.resize(N);
 	
-	for(auto s : _sR){
-		sR.push_back(s);
-	}
-
-	for(auto s : _sL){
-		sL.push_back(s);
-	}
+	initialize_kets(_sL,_sR);
 }
 
+base::base( int _M,
+			const int _N,
+			const int _Fl,
+			const int _Fr
+			) : M(_M), N(_N), Fl(_Fl), Fr(_Fr)
+{
 
+	//seeding random number generator
+	unsigned int lo,hi,s;
+	__asm__ __volatile__ ("rdtsc" : "=a" (lo), "=d" (hi));
+	s=((unsigned long long)hi << 32) | lo;
+
+	gen.seed(s);
+	dist = std::uniform_real_distribution<double>(0.0,1.0);
+
+
+	if((Fl==0) != (Fr==0)){
+		std::cout << "Fr and Fl must both be equal to 0." << std::endl;
+		exit(-1);
+	}
+
+	opstr.resize(M);
+	X.resize(4*M);
+	Vl.resize(N);
+	Vr.resize(N);
+	sP.resize(N);
+	
+	initialize_kets();
+}
 
 double inline base::ran(void){
 	return dist(gen);
