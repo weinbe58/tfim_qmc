@@ -59,7 +59,7 @@ class base{
 		void cluster_update();
 		virtual void diagonal_update() = 0;
 		int inline get_M(void) {return M;}
-		int inline get_N(void)	{return N;}
+		int inline get_N(void) {return N;}
 
 };
 
