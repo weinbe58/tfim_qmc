@@ -26,12 +26,9 @@ class base{
 		std::vector<signed char> sP;
 		std::vector<signed char> sL;
 
-<<<<<<< HEAD
 		std::vector<signed char> Fl,Fr;
-=======
 		uniform_dist ran;
 
->>>>>>> 7ea2131570ff9035a8f4bcb6c9eaed95e9a36660
 		std::vector<int>  Vl;
 		std::vector<int>  Vr;
 
