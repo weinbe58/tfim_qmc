@@ -11,6 +11,8 @@ class proj_base : public base{
 
 	public:
 		proj_base(int,const int,const int, const int, const std::vector<signed char>,const std::vector<signed char>);
+		proj_base(int,const int, const std::vector<signed char>,const std::vector<signed char>,
+				  const std::vector<signed char>,const std::vector<signed char>);
 		proj_base(int,const int,const int, const int);
 		proj_base(int,const int);
 		~proj_base() {};
@@ -23,6 +25,15 @@ class proj_base : public base{
 		void initialize_opstr();
 };
 
+
+proj_base::proj_base( int _M,
+			const int _N,
+			const std::vector<signed char> _Fl,
+			const std::vector<signed char> _Fl,
+			const std::vector<signed char> _sL,
+			const std::vector<signed char> _sR) : base::base(_M,_N,_Fl,_Fr,_sL,_sR) {
+	initialize_opstr();
+}
 
 proj_base::proj_base( int _M,
 			const int _N,

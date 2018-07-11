@@ -18,6 +18,9 @@ class qaqmc_local : public proj_base{
 		void move_op(int);
 
 	public:
+		qaqmc_local(int,const int,const int, const int[],const double*,const int*,anneal_func, 
+			const std::vector<signed char>,const std::vector<signed char>,
+			const std::vector<signed char>,const std::vector<signed char>);
 		qaqmc_local(int,const int,const int, const int[],const double*,const int*,anneal_func, const int, const int,
 			const std::vector<signed char>,const std::vector<signed char>);
 		qaqmc_local(int,const int,const int, const int[],const double*,const int*,anneal_func, const int, const int);
@@ -26,6 +29,18 @@ class qaqmc_local : public proj_base{
 
 };
 
+
+qaqmc_local::qaqmc_local(int _M,const int _N,const int _Nb, const int _bst[],const double *_rpar,const int *_ipar,anneal_func func,
+		  const std::vector<signed char> _Fl,const std::vector<signed char> _Fr,
+		  const std::vector<signed char> _sL,const std::vector<signed char> _sR) :
+proj_base::proj_base(_M,_N,_Fl,_Fr,_sL,_sR), rpar(_rpar), ipar(_ipar), Nb(_Nb), bst(_bst), S_func(func){
+	for(int i=0;i<2*Nb;i++){
+		if(bst[i]<0 || bst[i]>=N){
+			std::cout << "bond index out of bounds" << std::endl;
+			exit(-2);
+		}
+	}
+}
 
 qaqmc_local::qaqmc_local(int _M,const int _N,const int _Nb, const int _bst[],const double *_rpar,const int *_ipar,anneal_func func,
 		 const int _Fl, const int _Fr, const std::vector<signed char> _sL,const std::vector<signed char> _sR) :
