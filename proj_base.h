@@ -10,28 +10,28 @@ class proj_base : public base{
 		virtual void move_op(int) = 0;
 
 	public:
-		proj_base(int,const int,const int, const int, const std::vector<signed char>,const std::vector<signed char>);
-		proj_base(int,const int, const std::vector<signed char>,const std::vector<signed char>,
-				  const std::vector<signed char>,const std::vector<signed char>);
+		proj_base(int,const int,const int, const int, const short_vec,const short_vec);
+		proj_base(int,const int, const short_vec,const short_vec,
+				  const short_vec,const short_vec);
 		proj_base(int,const int,const int, const int);
 		proj_base(int,const int);
 		~proj_base() {};
 
 		void diagonal_update(void);
-		void diagonal_update(std::vector<signed char>::iterator);
-		void diagonal_update(std::vector<signed char>::iterator,int&,int&,int&);
+		void diagonal_update(short_vec::iterator);
+		void diagonal_update(short_vec::iterator,int&,int&,int&);
 		void double_M();
-		void midpoint(std::vector<signed char>::iterator);
+		void midpoint(short_vec::iterator);
 		void initialize_opstr();
 };
 
 
 proj_base::proj_base( int _M,
 			const int _N,
-			const std::vector<signed char> _Fl,
-			const std::vector<signed char> _Fl,
-			const std::vector<signed char> _sL,
-			const std::vector<signed char> _sR) : base::base(_M,_N,_Fl,_Fr,_sL,_sR) {
+			const short_vec _Fl,
+			const short_vec _Fr,
+			const short_vec _sL,
+			const short_vec _sR) : base::base(_M,_N,_Fl,_Fr,_sL,_sR) {
 	initialize_opstr();
 }
 
@@ -39,8 +39,8 @@ proj_base::proj_base( int _M,
 			const int _N,
 			const int _Fl,
 			const int _Fr,
-			const std::vector<signed char> _sL,
-			const std::vector<signed char> _sR) : base::base(_M,_N,_Fl,_Fr,_sL,_sR) {
+			const short_vec _sL,
+			const short_vec _sR) : base::base(_M,_N,_Fl,_Fr,_sL,_sR) {
 	initialize_opstr();
 }
 
@@ -63,7 +63,7 @@ void proj_base::initialize_opstr(){
 	}
 }
 
-void proj_base::midpoint(std::vector<signed char>::iterator spins){
+void proj_base::midpoint(short_vec::iterator spins){
 	for(int i=0;i<base::N;i++){
 		base::sP[i]=base::sL[i];
 	}
@@ -101,7 +101,7 @@ void proj_base::diagonal_update(){
 	}
 }
 
-void proj_base::diagonal_update(std::vector<signed char>::iterator spins){
+void proj_base::diagonal_update(short_vec::iterator spins){
 	// this->print_opstr(false);
 	for(int i=0;i<base::N;i++){
 		base::sP[i]=base::sL[i];
@@ -129,7 +129,7 @@ void proj_base::diagonal_update(std::vector<signed char>::iterator spins){
 }
 
 
-void proj_base::diagonal_update(std::vector<signed char>::iterator spins,int &np,int &nm,int &nt){
+void proj_base::diagonal_update(short_vec::iterator spins,int &np,int &nm,int &nt){
 	// this->print_opstr(false);
 	for(int i=0;i<base::N;i++){
 		base::sP[i]=base::sL[i];

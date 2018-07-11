@@ -24,11 +24,11 @@ class im_local : public im_base{
 	public:
 		im_local(const int, const int, const int[], double,
 		const double *,const int *, anneal_func, const int,const int,
-		const std::vector<signed char>,const std::vector<signed char>);
+		const short_vec,const short_vec);
 		im_local(const int, const int, const int[], double,
 		const double *,const int *, anneal_func, 
-		const std::vector<signed char>,const std::vector<signed char>,
-		const std::vector<signed char>,const std::vector<signed char>);
+		const short_vec,const short_vec,
+		const short_vec,const short_vec);
 		~im_local() {};
 		int get_Nb() {return Nb;}
 
@@ -37,7 +37,7 @@ class im_local : public im_base{
 
 im_local::im_local(const int _N,const int _Nb,const int _bst[],double _t_f,
 	const double *_rpar,const int *_ipar,anneal_func func, const int _Fl,const int _Fr,
-	const std::vector<signed char> _sL,const std::vector<signed char> _sR)
+	const short_vec _sL,const short_vec _sR)
 	 : im_base::im_base(_N,_t_f,_rpar,_ipar,func,_Fl,_Fr,_sL,_sR), Nb(_Nb), bst(_bst)
 {
 	for(int i=0;i<2*Nb;i++){
@@ -50,8 +50,8 @@ im_local::im_local(const int _N,const int _Nb,const int _bst[],double _t_f,
 
 im_local::im_local(const int _N,const int _Nb,const int _bst[],double _t_f,
 	const double *_rpar,const int *_ipar,anneal_func func, 
-	const std::vector<signed char> _Fl,const std::vector<signed char> _Fr,
-	const std::vector<signed char> _sL,const std::vector<signed char> _sR)
+	const short_vec _Fl,const short_vec _Fr,
+	const short_vec _sL,const short_vec _sR)
 	 : im_base::im_base(_N,_t_f,_rpar,_ipar,func,_Fl,_Fr,_sL,_sR), Nb(_Nb), bst(_bst)
 {
 	for(int i=0;i<2*Nb;i++){

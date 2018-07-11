@@ -32,10 +32,10 @@ class im_base : public base{
 
 	public:
 		im_base(const int, const double,const double *,const int *, anneal_func,
-		const int,const int,const std::vector<signed char>,const std::vector<signed char>);
+		const int,const int,const short_vec,const short_vec);
 		im_base(const int, const double,const double *,const int *, anneal_func,
-		const std::vector<signed char>,const std::vector<signed char>,
-		const std::vector<signed char>,const std::vector<signed char>);
+		const short_vec,const short_vec,
+		const short_vec,const short_vec);
 
 
 		~im_base() {};
@@ -43,7 +43,7 @@ class im_base : public base{
 		void diagonal_update(void);
 		double update_times(int,int);
 		void check_M(void);
-		void midpoint(std::vector<signed char>::iterator);
+		void midpoint(short_vec::iterator);
 		int inline get_M_left(){return M_left;}
 		int inline get_M_right(){return M_right;}
 };
@@ -56,8 +56,8 @@ im_base::im_base(const int _N,
 				 anneal_func func,
 				 const int _Fl,
 				 const int _Fr,
-				 const std::vector<signed char> _sL,
-				 const std::vector<signed char> _sR) : base::base(2*_N,_N,_Fl,_Fr,_sL,_sR),
+				 const short_vec _sL,
+				 const short_vec _sR) : base::base(2*_N,_N,_Fl,_Fr,_sL,_sR),
 				 S_func(func),rpar(_rpar),ipar(_ipar),t_f(_t_f),Nop_left(0), Nop_right(0), M_left(_N), M_right(_N)
 {
 	for(int i=0;i<_N;i++)
@@ -80,10 +80,10 @@ im_base::im_base(const int _N,
 				 const double *_rpar,
 				 const int *_ipar,
 				 anneal_func func,
-				 const std::vector<signed char> _Fr,
-				 const std::vector<signed char> _Fl,
-				 const std::vector<signed char> _sL,
-				 const std::vector<signed char> _sR) : base::base(2*_N,_N,_Fl,_Fr,_sL,_sR),
+				 const short_vec _Fr,
+				 const short_vec _Fl,
+				 const short_vec _sL,
+				 const short_vec _sR) : base::base(2*_N,_N,_Fl,_Fr,_sL,_sR),
 				 S_func(func),rpar(_rpar),ipar(_ipar),t_f(_t_f),Nop_left(0), Nop_right(0), M_left(_N), M_right(_N)
 {
 	for(int i=0;i<_N;i++)
@@ -224,7 +224,7 @@ double inline im_base::time(int p){
 
 
 
-void im_base::midpoint(std::vector<signed char>::iterator spins){
+void im_base::midpoint(short_vec::iterator spins){
 	for(int i=0;i<base::N;i++){
 		base::sP[i]=base::sL[i];
 	}

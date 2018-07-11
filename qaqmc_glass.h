@@ -23,7 +23,7 @@ class qaqmc_glass : public proj_base{
 
 	public:
 		qaqmc_glass(int,const int,const int, const int[],const double[],double*,int*,double (*)(double,double*,int*), const int, const int,
-			const std::vector<signed char>,const std::vector<signed char>);
+			const short_vec,const short_vec);
 		qaqmc_glass(int,const int,const int, const int[],const double[],double*,int*,double (*)(double,double*,int*), const int, const int);
 
 		~qaqmc_glass() {};
@@ -34,7 +34,7 @@ class qaqmc_glass : public proj_base{
 
 
 qaqmc_glass::qaqmc_glass(int _M,const int _N,const int _Nb, const int _bst[],const double _Jb[],double *_rpar,int *_ipar,double (* func)(double,double*,int*),
-		 	const int _Fl, const int _Fr, const std::vector<signed char> _sL,const std::vector<signed char> _sR) :
+		 	const int _Fl, const int _Fr, const short_vec _sL,const short_vec _sR) :
 proj_base::proj_base(_M,_N,_Fl,_Fr,_sL,_sR), rpar(_rpar), ipar(_ipar), Nb(_Nb), bst(_bst), Jb(_Jb), S_func(func), Smax(func(1.0,_rpar,_ipar)){
 	for(int i=0;i<2*Nb;i++){
 		if(bst[i]<0 || bst[i]>=_N){

@@ -17,16 +17,19 @@
 
 
 
+typedef std::vector<signed char> short_vec;
+
+
 class base{
 	protected:
 		int M;
 		const int N;
 
-		std::vector<signed char> sR;
-		std::vector<signed char> sP;
-		std::vector<signed char> sL;
+		short_vec sR;
+		short_vec sP;
+		short_vec sL;
 
-		std::vector<signed char> Fl,Fr;
+		short_vec Fl,Fr;
 		uniform_dist ran;
 
 		std::vector<int>  Vl;
@@ -42,10 +45,10 @@ class base{
 		void flip_cluster();
 
 	public:
-		base(int,const int,const std::vector<signed char>,const std::vector<signed char>
-			,const std::vector<signed char>,const std::vector<signed char>);
+		base(int,const int,const short_vec,const short_vec
+			,const short_vec,const short_vec);
 		base(int,const int, const int,const int,
-			const std::vector<signed char>,const std::vector<signed char>);
+			const short_vec,const short_vec);
 		base(int,const int, const int,const int);
 		base(int,const int);
 		~base() {};
@@ -58,8 +61,8 @@ class base{
 		virtual void diagonal_update() = 0;
 		void initialize_kets();
 		void initialize_kets(const int, const int);
-		void initialize_kets(const std::vector<signed char>,const std::vector<signed char>,const int,const int);
-		void initialize_kets(const std::vector<signed char>,const std::vector<signed char>,const std::vector<signed char>,const std::vector<signed char>);
+		void initialize_kets(const short_vec,const short_vec,const int,const int);
+		void initialize_kets(const short_vec,const short_vec,const short_vec,const short_vec);
 		int inline get_M(void) {return M;}
 		int inline get_N(void) {return N;}
 
@@ -71,11 +74,6 @@ base::base( int _M,
 {
 
 	ran = uniform_dist();
-
-	if((Fl==0) != (Fr==0)){
-		std::cout << "Fr and Fl must both be equal to 0." << std::endl;
-		exit(-1);
-	}
 
 	opstr.resize(M);
 	X.resize(4*M);
@@ -93,8 +91,8 @@ base::base( int _M,
 			const int _N,
 			const int _Fl,
 			const int _Fr,
-			const std::vector<signed char> _sL,
-			const std::vector<signed char> _sR
+			const short_vec _sL,
+			const short_vec _sR
 			) : M(_M), N(_N)
 {
 
@@ -126,16 +124,16 @@ base::base( int _M,
 	Vr.resize(N);
 	sP.resize(N);
 	
-	initialize_kets(_sL,_sR,_Fl,_Fr);
+	initialize_kets(_Fl,_Fr);
 }
 
 
 base::base( int _M,
 			const int _N,
-			const std::vector<signed char> _Fl,
-			const std::vector<signed char> _Fr,
-			const std::vector<signed char> _sL,
-			const std::vector<signed char> _sR
+			const short_vec _Fl,
+			const short_vec _Fr,
+			const short_vec _sL,
+			const short_vec _sR
 			) : M(_M), N(_N)
 {
 
@@ -186,7 +184,7 @@ void base::initialize_kets(const int _Fl,const int _Fr)
 	}
 }
 
-void base::initialize_kets(const std::vector<signed char> _sL,const std::vector<signed char> _sR,const int _Fl,const int _Fr)
+void base::initialize_kets(const short_vec _sL,const short_vec _sR,const int _Fl,const int _Fr)
 {
 	if((_Fl==0) != (_Fr==0)){
 		std::cout << "Fr and Fl must both be equal to 0." << std::endl;
@@ -204,8 +202,8 @@ void base::initialize_kets(const std::vector<signed char> _sL,const std::vector<
 	}
 }
 
-void base::initialize_kets(const std::vector<signed char> _sL,const std::vector<signed char> _sR,
-						   const std::vector<signed char> _Fl,const std::vector<signed char> _Fr)
+void base::initialize_kets(const short_vec _sL,const short_vec _sR,
+						   const short_vec _Fl,const short_vec _Fr)
 {
 
 	for(int i=0;i<N;i++){

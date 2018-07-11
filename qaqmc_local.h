@@ -19,10 +19,10 @@ class qaqmc_local : public proj_base{
 
 	public:
 		qaqmc_local(int,const int,const int, const int[],const double*,const int*,anneal_func, 
-			const std::vector<signed char>,const std::vector<signed char>,
-			const std::vector<signed char>,const std::vector<signed char>);
+			const short_vec,const short_vec,
+			const short_vec,const short_vec);
 		qaqmc_local(int,const int,const int, const int[],const double*,const int*,anneal_func, const int, const int,
-			const std::vector<signed char>,const std::vector<signed char>);
+			const short_vec,const short_vec);
 		qaqmc_local(int,const int,const int, const int[],const double*,const int*,anneal_func, const int, const int);
 		~qaqmc_local() {};
 		int inline get_Nb() {return Nb;}
@@ -31,8 +31,8 @@ class qaqmc_local : public proj_base{
 
 
 qaqmc_local::qaqmc_local(int _M,const int _N,const int _Nb, const int _bst[],const double *_rpar,const int *_ipar,anneal_func func,
-		  const std::vector<signed char> _Fl,const std::vector<signed char> _Fr,
-		  const std::vector<signed char> _sL,const std::vector<signed char> _sR) :
+		  const short_vec _Fl,const short_vec _Fr,
+		  const short_vec _sL,const short_vec _sR) :
 proj_base::proj_base(_M,_N,_Fl,_Fr,_sL,_sR), rpar(_rpar), ipar(_ipar), Nb(_Nb), bst(_bst), S_func(func){
 	for(int i=0;i<2*Nb;i++){
 		if(bst[i]<0 || bst[i]>=N){
@@ -43,7 +43,7 @@ proj_base::proj_base(_M,_N,_Fl,_Fr,_sL,_sR), rpar(_rpar), ipar(_ipar), Nb(_Nb), 
 }
 
 qaqmc_local::qaqmc_local(int _M,const int _N,const int _Nb, const int _bst[],const double *_rpar,const int *_ipar,anneal_func func,
-		 const int _Fl, const int _Fr, const std::vector<signed char> _sL,const std::vector<signed char> _sR) :
+		 const int _Fl, const int _Fr, const short_vec _sL,const short_vec _sR) :
 proj_base::proj_base(_M,_N,_Fl,_Fr,_sL,_sR), rpar(_rpar), ipar(_ipar), Nb(_Nb), bst(_bst), S_func(func){
 	for(int i=0;i<2*Nb;i++){
 		if(bst[i]<0 || bst[i]>=N){

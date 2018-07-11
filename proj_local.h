@@ -16,7 +16,7 @@ class proj_local : public proj_base{
 	public:
 		proj_local(int, const int, const int, const int[],const double);
 		proj_local(int,const int, const int, const int[], const double, const int, const int,
-		const std::vector<signed char>,const std::vector<signed char>);
+		const short_vec,const short_vec);
 		~proj_local() {};
 
 		int inline get_Nb() {return Nb;}	
@@ -39,7 +39,7 @@ proj_local::proj_local(int _M,const int _N,const int _Nb, const int _bst[], cons
 
 
 proj_local::proj_local(int _M,const int _N,const int _Nb, const int _bst[], const double _S, const int _Fl, const int _Fr,
-		const std::vector<signed char> _sL,const std::vector<signed char> _sR) :
+		const short_vec _sL,const short_vec _sR) :
 proj_base::proj_base(_M,_N,_Fl,_Fr,_sL,_sR), Nb(_Nb), bst(_bst), W(2*_Nb*_S+_N*(1-_S)), Wh(_N*(1-_S)){
 	for(int i=0;i<2*Nb;i++){
 		if(bst[i]<0 || bst[i]>=N){
