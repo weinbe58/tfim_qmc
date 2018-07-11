@@ -10,10 +10,11 @@
 #include <iomanip>
 #include <string>
 #include <cmath>
-#include <random>
 #include <algorithm>
 #include "state_iterator.h"
 #include "optype.h"
+#include "uniform_dist.h"
+
 
 
 class base{
@@ -27,12 +28,10 @@ class base{
 		std::vector<signed char> sP;
 		std::vector<signed char> sL;
 
+		uniform_dist ran;
 
 		std::vector<int>  Vl;
 		std::vector<int>  Vr;
-
-		std::mt19937_64 gen;
-		std::uniform_real_distribution<double> dist;
 
 		std::vector<optype> opstr;
 		std::stack<int> stk;
@@ -42,9 +41,6 @@ class base{
 		void link_verticies();
 		void visit_cluster();
 		void flip_cluster();
-		
-		double inline ran(void);
-
 
 	public:
 		base(int,const int, const int,const int,
@@ -71,14 +67,7 @@ base::base( int _M,
 			) : M(_M), N(_N), Fl(0), Fr(0)
 {
 
-	//seeding random number generator
-	unsigned int lo,hi,s;
-	__asm__ __volatile__ ("rdtsc" : "=a" (lo), "=d" (hi));
-	s=((unsigned long long)hi << 32) | lo;
-
-	gen.seed(s);
-	dist = std::uniform_real_distribution<double>(0.0,1.0);
-
+	ran = uniform_dist();
 
 	if((Fl==0) != (Fr==0)){
 		std::cout << "Fr and Fl must both be equal to 0." << std::endl;
@@ -125,14 +114,7 @@ base::base( int _M,
 			) : M(_M), N(_N), Fl(_Fl), Fr(_Fr)
 {
 
-	//seeding random number generator
-	unsigned int lo,hi,s;
-	__asm__ __volatile__ ("rdtsc" : "=a" (lo), "=d" (hi));
-	s=((unsigned long long)hi << 32) | lo;
-
-	gen.seed(s);
-	dist = std::uniform_real_distribution<double>(0.0,1.0);
-
+	ran = uniform_dist();
 
 	if((Fl==0) != (Fr==0)){
 		std::cout << "Fr and Fl must both be equal to 0." << std::endl;
@@ -155,14 +137,7 @@ base::base( int _M,
 			) : M(_M), N(_N), Fl(_Fl), Fr(_Fr)
 {
 
-	//seeding random number generator
-	unsigned int lo,hi,s;
-	__asm__ __volatile__ ("rdtsc" : "=a" (lo), "=d" (hi));
-	s=((unsigned long long)hi << 32) | lo;
-
-	gen.seed(s);
-	dist = std::uniform_real_distribution<double>(0.0,1.0);
-
+	ran = uniform_dist();
 
 	if((Fl==0) != (Fr==0)){
 		std::cout << "Fr and Fl must both be equal to 0." << std::endl;
@@ -178,9 +153,6 @@ base::base( int _M,
 	initialize_kets();
 }
 
-double inline base::ran(void){
-	return dist(gen);
-}
 
 
 void base::cluster_update(){
