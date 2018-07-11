@@ -10,10 +10,11 @@
 #include <iomanip>
 #include <string>
 #include <cmath>
-#include <random>
 #include <algorithm>
 #include "state_iterator.h"
 #include "optype.h"
+#include "uniform_dist.h"
+
 
 
 class base{
@@ -25,12 +26,14 @@ class base{
 		std::vector<signed char> sP;
 		std::vector<signed char> sL;
 
+<<<<<<< HEAD
 		std::vector<signed char> Fl,Fr;
+=======
+		uniform_dist ran;
+
+>>>>>>> 7ea2131570ff9035a8f4bcb6c9eaed95e9a36660
 		std::vector<int>  Vl;
 		std::vector<int>  Vr;
-
-		std::mt19937_64 gen;
-		std::uniform_real_distribution<double> dist;
 
 		std::vector<optype> opstr;
 		std::stack<int> stk;
@@ -40,9 +43,6 @@ class base{
 		void link_verticies();
 		void visit_cluster();
 		void flip_cluster();
-		
-		double inline ran(void);
-
 
 	public:
 		base(int,const int,const std::vector<signed char>,const std::vector<signed char>
@@ -64,7 +64,7 @@ class base{
 		void initialize_kets(const std::vector<signed char>,const std::vector<signed char>,const int,const int);
 		void initialize_kets(const std::vector<signed char>,const std::vector<signed char>,const std::vector<signed char>,const std::vector<signed char>);
 		int inline get_M(void) {return M;}
-		int inline get_N(void)	{return N;}
+		int inline get_N(void) {return N;}
 
 };
 
@@ -73,13 +73,12 @@ base::base( int _M,
 			) : M(_M), N(_N), Fl(0), Fr(0)
 {
 
-	//seeding random number generator
-	unsigned int lo,hi,s;
-	__asm__ __volatile__ ("rdtsc" : "=a" (lo), "=d" (hi));
-	s=((unsigned long long)hi << 32) | lo;
+	ran = uniform_dist();
 
-	gen.seed(s);
-	dist = std::uniform_real_distribution<double>(0.0,1.0);
+	if((Fl==0) != (Fr==0)){
+		std::cout << "Fr and Fl must both be equal to 0." << std::endl;
+		exit(-1);
+	}
 
 	opstr.resize(M);
 	X.resize(4*M);
@@ -102,13 +101,13 @@ base::base( int _M,
 			) : M(_M), N(_N)
 {
 
-	//seeding random number generator
-	unsigned int lo,hi,s;
-	__asm__ __volatile__ ("rdtsc" : "=a" (lo), "=d" (hi));
-	s=((unsigned long long)hi << 32) | lo;
 
-	gen.seed(s);
-	dist = std::uniform_real_distribution<double>(0.0,1.0);
+	ran = uniform_dist();
+
+	if((Fl==0) != (Fr==0)){
+		std::cout << "Fr and Fl must both be equal to 0." << std::endl;
+		exit(-1);
+	}
 
 	opstr.resize(M);
 	X.resize(4*M);
@@ -126,13 +125,13 @@ base::base( int _M,
 			) : M(_M), N(_N)
 {
 
-	//seeding random number generator
-	unsigned int lo,hi,s;
-	__asm__ __volatile__ ("rdtsc" : "=a" (lo), "=d" (hi));
-	s=((unsigned long long)hi << 32) | lo;
 
-	gen.seed(s);
-	dist = std::uniform_real_distribution<double>(0.0,1.0);
+	ran = uniform_dist();
+
+	if((Fl==0) != (Fr==0)){
+		std::cout << "Fr and Fl must both be equal to 0." << std::endl;
+		exit(-1);
+	}
 
 	opstr.resize(M);
 	X.resize(4*M);
@@ -144,7 +143,6 @@ base::base( int _M,
 }
 
 
-
 base::base( int _M,
 			const int _N,
 			const std::vector<signed char> _Fl,
@@ -154,14 +152,12 @@ base::base( int _M,
 			) : M(_M), N(_N)
 {
 
-	//seeding random number generator
-	unsigned int lo,hi,s;
-	__asm__ __volatile__ ("rdtsc" : "=a" (lo), "=d" (hi));
-	s=((unsigned long long)hi << 32) | lo;
+	ran = uniform_dist();
 
-	gen.seed(s);
-	dist = std::uniform_real_distribution<double>(0.0,1.0);
-
+	if((Fl==0) != (Fr==0)){
+		std::cout << "Fr and Fl must both be equal to 0." << std::endl;
+		exit(-1);
+	}
 
 	opstr.resize(M);
 	X.resize(4*M);
@@ -247,9 +243,6 @@ void base::initialize_kets(const std::vector<signed char> _sL,const std::vector<
 }
 
 
-double inline base::ran(void){
-	return dist(gen);
-}
 
 
 void base::cluster_update(){
