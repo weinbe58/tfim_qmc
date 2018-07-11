@@ -101,11 +101,6 @@ base::base( int _M,
 
 	ran = uniform_dist();
 
-	if((Fl==0) != (Fr==0)){
-		std::cout << "Fr and Fl must both be equal to 0." << std::endl;
-		exit(-1);
-	}
-
 	opstr.resize(M);
 	X.resize(4*M);
 	Vl.resize(N);
@@ -125,18 +120,13 @@ base::base( int _M,
 
 	ran = uniform_dist();
 
-	if((Fl==0) != (Fr==0)){
-		std::cout << "Fr and Fl must both be equal to 0." << std::endl;
-		exit(-1);
-	}
-
 	opstr.resize(M);
 	X.resize(4*M);
 	Vl.resize(N);
 	Vr.resize(N);
 	sP.resize(N);
 	
-	initialize_kets();
+	initialize_kets(_sL,_sR,_Fl,_Fr);
 }
 
 
@@ -150,11 +140,6 @@ base::base( int _M,
 {
 
 	ran = uniform_dist();
-
-	if((Fl==0) != (Fr==0)){
-		std::cout << "Fr and Fl must both be equal to 0." << std::endl;
-		exit(-1);
-	}
 
 	opstr.resize(M);
 	X.resize(4*M);
