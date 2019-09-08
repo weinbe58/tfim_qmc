@@ -1,5 +1,5 @@
-#ifndef __proj_INCLUDED__
-#define __proj_INCLUDED__
+#ifndef __QAQMC_INCLUDED__
+#define __QAQMC_INCLUDED__
 
 #include <vector>
 #include <stack>
@@ -30,25 +30,21 @@ struct get_N<L,1>
 };
 
 
-template<int L,int d,int M,int Nm,int mstep>
-class proj{
+template<int L,int d,int M,int mann>
+class qaqmc{
 
 	protected:
 		enum{N=get_N<L,d>::N};
 		enum{Nb=d*get_N<L,d>::N};
 
+		double S_f,dS;
+		const double dS_f;
+
 		int Fl;
 		int Fr;
-		const double p1,p2,S;
 		std::string output_file;
 
-		int Ef;
-		int Et;
-		double Eising;
-		double E;
-		double mi;
-		double ma;
-		double m2;
+		double Eising,mi,ma,m2;
 
 		signed char spinsR[N];
 		signed char spins[N];
@@ -59,51 +55,46 @@ class proj{
 		int Vl[N];
 		int Vr[N];
 
+		//MTRand ran;
+
 		std::mt19937_64 gen;
 		std::uniform_real_distribution<double> dist;
 
-		std::vector<optype> opstr;
 		std::stack<int> stk;
-		std::vector<int> X;
-		std::vector<bool> Measure;
+		optype opstr[2*M];
+		int X[8*M];
 
 		// private functions:
 		void diagonal_update();
+		void inline update_S_f(int);
 		void link_verticies();
 		void cluster_update();
 		void visit_cluster();
 		void flip_cluster();
-
-		void beginMeasure();
 		void Measurement();
-		void endMeasure();
-		void double_opstr();
+
 		void print_opstr(bool);
 
-		double inline ran(void);
+		double inline ran(void){
+			return dist(gen);
+		}
 
 
 	public:
-		proj(const double,const std::string&,const std::string&);
+		qaqmc(const double,const std::string&);
 
 		void write_out();
 		void write_out_lock();
-		void MCstep();
-		void EQstep();
+		void MCramp(int);
 
 };
 
 
-
-
-template<int L,int d,int M,int Nm,int mstep>
-proj<L,d,M,Nm,mstep>::proj(const double _S,
-						const std::string & bc,
-						const std::string & _output_file
-						) : p1(1-_S), p2((2*d-1)*_S+1), S(_S)
+template<int L,int d,int M,int mann>
+qaqmc<L,d,M,mann>::qaqmc(const double _S_f,
+							  const std::string & _output_file
+							 ) : dS_f(_S_f/mann)
 {
-	output_file = _output_file;
-
 	//seeding random number generator
 	unsigned int lo,hi,s;
 	__asm__ __volatile__ ("rdtsc" : "=a" (lo), "=d" (hi));
@@ -112,6 +103,7 @@ proj<L,d,M,Nm,mstep>::proj(const double _S,
 	gen.seed(s);
 	dist = std::uniform_real_distribution<double>(0.0,1.0);
 
+	output_file = _output_file;
 
 	for(int i=0;i<N;i++){
 		int LL = 1;
@@ -126,21 +118,6 @@ proj<L,d,M,Nm,mstep>::proj(const double _S,
 		}
 	}
 
-	opstr.resize(2*M);
-	Measure.resize(2*M+1);
-	X.resize(8*M);
-
-	int dm=0;
-
-	if(Nm>2*M){ std::cout << "Nm is too large." << std::endl; std::exit(3);}
-
-
-	for(int i=0;i<=2*M;i++){ Measure[i]=false; }
-
-	for(int i= -Nm/2;i<=Nm/2;i++){ 
-		Measure[M+i]=true;
-	}
-
 	for(int p=0;p<2*M;p++){ opstr[p].o1=-1; opstr[p].o2=int(std::floor(N*ran()));}
 
 	/*	list of bc:
@@ -148,36 +125,14 @@ proj<L,d,M,Nm,mstep>::proj(const double _S,
 			pz = polarized state in z direction
 			tr = trace 
 	*/
-	if(bc=="pzpz"){
-		Fl=-1; Fr=-1;
-		for(int i=0;i<N;i++){
-			spinsL[i]=1;
-			spinsR[i]=1;
-		}
-	}
-	else if(bc=="pxpx"){
-		Fl=1; Fr=1;
-		for(int i=0;i<N;i++){
-			spinsL[i]=1;
-			spinsR[i]=1;
-		}
-	}
-	else if(bc=="tr"){
-		Fl=0; Fr=0;
-		for(int i=0;i<N;i++){
-			spinsL[i]=1;
-			spinsR[i]=1;
-		}
-	}
-	else{
-		std::cout << "init_states error: bc not recognized." << std::endl;
-		std::exit(2);
-	}// end bc if tree
+	Fl=1; Fr=1;
+
+
 }
 
 
-template<int L,int d,int M,int Nm,int mstep>
-void proj<L,d,M,Nm,mstep>::write_out_lock(){
+template<int L,int d,int M,int mann>
+void qaqmc<L,d,M,mann>::write_out_lock(){
 	std::string filelock=output_file+".lock";
 	std::ofstream lockstream;
 	std::ofstream outstream; // Stream which the bin averages go to
@@ -186,10 +141,9 @@ void proj<L,d,M,Nm,mstep>::write_out_lock(){
 	int count = 0;
 
 	std::stringstream buffer;
+	
 	buffer << std::setprecision(14) << std::fixed;
-	buffer << std::setw(20) << S;
 	buffer << std::setw(20) << Eising;
-	buffer << std::setw(20) << double(Ef)/(double(Et)+1.1e-16);
 	buffer << std::setw(20) << mi;
 	buffer << std::setw(20) << ma;
 	buffer << std::setw(20) << m2;
@@ -220,22 +174,21 @@ void proj<L,d,M,Nm,mstep>::write_out_lock(){
 }
 
 
-template<int L,int d,int M,int Nm,int mstep>
-void proj<L,d,M,Nm,mstep>::write_out(){
+template<int L,int d,int M,int mann>
+void qaqmc<L,d,M,mann>::write_out(){
 	std::ofstream outstream; // Stream which the bin averages go to
 	bool written=false;
 	bool open=false;
 	int count=0;
-
 	std::stringstream buffer;
+	
 	buffer << std::setprecision(14) << std::fixed;
-	buffer << std::setw(20) << S;
 	buffer << std::setw(20) << Eising;
-	buffer << std::setw(20) << double(Ef)/(double(Et)+1.1e-16);
 	buffer << std::setw(20) << mi;
 	buffer << std::setw(20) << ma;
 	buffer << std::setw(20) << m2;
 	buffer << std::endl;
+
 
 	while(!open){ 
 		outstream.open(output_file.c_str(), std::ios::app);
@@ -250,40 +203,52 @@ void proj<L,d,M,Nm,mstep>::write_out(){
 	}
 }
 
-template<int L,int d,int M,int Nm,int mstep>
-double inline proj<L,d,M,Nm,mstep>::ran(void){
-	return dist(gen);
-}
 
-template<int L,int d,int M,int Nm,int mstep>
-void proj<L,d,M,Nm,mstep>::EQstep(){
-	for(int j=0;j<mstep;j++){
-		diagonal_update();
-		cluster_update();
-	}
-}
-
-
-template<int L,int d,int M,int Nm,int mstep>
-void proj<L,d,M,Nm,mstep>::MCstep(){
-	beginMeasure();
-	for(int j=0;j<mstep;j++){
-		diagonal_update();
-		cluster_update();
+template<int L,int d,int M,int mann>
+void qaqmc<L,d,M,mann>::MCramp(const int npbin){
+	
+	for(int k=0;k<npbin;k++){
+		std::cout << k << std::endl;
+		Eising=0;
+		mi=0;
+		ma=0;
+		m2=0;
+		for(int p=0;p<2*M;p++){ opstr[p].o1=-1; opstr[p].o2=int(std::floor(N*ran()));}
+		for(int i=0;i<N;i++){
+			spinsL[i]=2*int(std::floor(ran()))-1;
+			spinsR[i]=2*int(std::floor(ran()))-1;
+		}
+		S_f = 0.0;
+		dS = 0.0;
+		for(int j=0;j<mann;j++){
+			diagonal_update();
+			cluster_update();
+			update_S_f(j);
+		}
 		Measurement();
+
+		Eising /= (N*npbin);
+		mi /= npbin;
+		ma /= npbin;
+		m2 /= npbin;
 	}
-	endMeasure();
 }
 
 
-template<int L,int d,int M,int Nm,int mstep>
-void proj<L,d,M,Nm,mstep>::diagonal_update(){
+
+
+template<int L,int d,int M,int mann>
+void qaqmc<L,d,M,mann>::diagonal_update(){
 	for(int i=0;i<N;i++){
 		spins[i]=spinsL[i];
 	}// end for(int i=1;...
-
-	for(int p=0;p<2*M;p++){
+	double S=0;
+	for(int p=0;p<M;p++){
 		if(opstr[p].o1>-2){
+			bool accept=false;
+			S += dS;
+			double p1 = (1-S);
+			double p2 = ((2*d-1)*S+1);
 			while(true){
 				if(ran()*p2<p1){
 					opstr[p].o1=-1; 
@@ -297,8 +262,8 @@ void proj<L,d,M,Nm,mstep>::diagonal_update(){
 					if(spins[i]*spins[j]>0){
 						opstr[p].o1=i;
 						opstr[p].o2=j;
-						break;
 					}
+					break;
 				}
 			}
 		}
@@ -306,105 +271,80 @@ void proj<L,d,M,Nm,mstep>::diagonal_update(){
 			spins[ opstr[p].o2 ] *= -1;
 		}
 	}
-}
-
-
-template<int L,int d,int M,int Nm,int mstep>
-void proj<L,d,M,Nm,mstep>::double_opstr(){
-	std::vector<optype> opstr_1;
-	opstr_1.resize(2*M);
-	for(int p=0;p<2*M;p++){opstr_1[p]=opstr[p];}
-	opstr.resize(4*M);
-	for(int p=0;p<2*M;p++){
-		if(opstr_1[p].o1>-2){
-			opstr[2*p]=opstr_1[p];
-			opstr[2*p+1]=opstr_1[p];
+	for(int p=M;p<2*M;p++){
+		if(opstr[p].o1>-2){
+			bool accept=false;
+			double p1 = (1-S);
+			double p2 = ((2*d-1)*S+1);
+			while(true){
+				if(ran()*p2<p1){
+					opstr[p].o1=-1; 
+					opstr[p].o2=int(ran()*N);
+					break;
+				}
+				else{
+					int ib = 2*int(ran()*Nb);
+					int i = bst[ib];
+					int j = bst[ib+1];
+					if(spins[i]*spins[j]>0){
+						opstr[p].o1=i;
+						opstr[p].o2=j;
+					}
+					break;
+				}
+			}
 		}
 		else{
-			opstr[2*p].o1=-1;
-			opstr[2*p].o2=opstr_1[p].o2;
-			opstr[2*p+1]=opstr_1[p];
+			spins[ opstr[p].o2 ] *= -1;
 		}
+		S -= dS;
 	}
 }
 
 
-template<int L,int d,int M,int Nm,int mstep>
-void proj<L,d,M,Nm,mstep>::Measurement(){
-	double mprop=0;
-	int k=0;
+
+
+template<int L,int d,int M,int mann>
+void inline qaqmc<L,d,M,mann>::update_S_f(int k){
+	S_f += dS_f;
+	dS += dS_f/M;
+}
+
+
+template<int L,int d,int M,int mann>
+void qaqmc<L,d,M,mann>::Measurement(){
+	double mprop;
 	for(int i=0;i<N;i++){spins[i]=spinsL[i];}
+	mprop=0;
 	for(int i=0;i<N;i++){mprop+=spins[i];}// end for(int i=0;i<N;i++)
 
 	mprop=mprop/2;
 	
-	int o1,o2;
-	for(int p=0;p<2*M;p++){
-		o1=opstr[p].o1;
-		o2=opstr[p].o2;
-		if(Measure[p]){
-			for(int b=0;b<Nb;b++){
-				int i=bst[2*b];
-				int j=bst[2*b+1];
-				Eising += spins[i]*spins[j];
-			}
-
-			if(o1==-1){Et++;}
-			else if(o1==-2){Ef++;}
-
-			double Mag=mprop/N;
-			mi+=Mag;
-			ma+=std::abs(Mag);
-			m2+=Mag*Mag;
+	for(int p=0;p<M;p++){
+		if(opstr[p].o1<-1){
+			spins[opstr[p].o2]*=-1;
+			mprop+=spins[opstr[p].o2];
 		}
-		if(o1<-1){
-			spins[o2]*=-1;
-			mprop+=spins[o2];
-		}// end if(opstr[p].o1==-2)
-	}// for(int p=0;p<2*M;p++)
-
-
-	if(Measure[2*M]){
-		for(int b=0;b<Nb;b++){
-			int i=bst[2*b];
-			int j=bst[2*b+1];
-			Eising+=spins[i]*spins[j];
-		}
-
-		if(o1==-1){Et++;}
-		else if(o1==-2){Ef++;}
-
-		double Mag=mprop/N;
-		mi+=Mag;
-		ma+=std::abs(Mag);
-		m2+=Mag*Mag;
 	}
-}
 
+	double ising=0;
+	for(int b=0;b<Nb;b++){
+		int i=bst[2*b];
+		int j=bst[2*b+1];
+		ising += spins[i]*spins[j];
+	}
+	Eising += ising;
 
-template<int L,int d,int M,int Nm,int mstep>
-void proj<L,d,M,Nm,mstep>::beginMeasure(){
-	Eising=0;
-	Ef=0;
-	Et=0;
-	mi=0;
-	ma=0;
-	m2=0;
-}
-
-
-template<int L,int d,int M,int Nm,int mstep>
-void proj<L,d,M,Nm,mstep>::endMeasure(){
-	Eising /= (size_t(mstep)*Nm)*N;
-	mi /= (size_t(mstep)*Nm);
-	ma /= (size_t(mstep)*Nm);
-	m2 /= (size_t(mstep)*Nm);
+	double Mag=mprop/N;
+	mi+=Mag;
+	ma+=std::abs(Mag);
+	m2+=Mag*Mag;
 
 }
 
 
-template<int L,int d,int M,int Nm,int mstep>
-void proj<L,d,M,Nm,mstep>::cluster_update(){
+template<int L,int d,int M,int mann>
+void qaqmc<L,d,M,mann>::cluster_update(){
 	link_verticies();
 
 	// first mark clusters which are attached to end spins which can't be flipped
@@ -471,8 +411,8 @@ void proj<L,d,M,Nm,mstep>::cluster_update(){
 }
 
 
-template<int L,int d,int M,int Nm,int mstep>
-void proj<L,d,M,Nm,mstep>::visit_cluster(){
+template<int L,int d,int M,int mann>
+void qaqmc<L,d,M,mann>::visit_cluster(){
 	while(!stk.empty()){
 		int v=stk.top(); stk.pop();
 		if(v >= 8*M) continue;
@@ -490,8 +430,8 @@ void proj<L,d,M,Nm,mstep>::visit_cluster(){
 }
 
 
-template<int L,int d,int M,int Nm,int mstep>
-void proj<L,d,M,Nm,mstep>::flip_cluster(){
+template<int L,int d,int M,int mann>
+void qaqmc<L,d,M,mann>::flip_cluster(){
 	while(!stk.empty()){
 		int v=stk.top(); stk.pop();
 		if(v >= 8*M) continue;
@@ -514,8 +454,8 @@ void proj<L,d,M,Nm,mstep>::flip_cluster(){
 
 // increasing p
 // <Vl| -> |Vr>
-template<int L,int d,int M,int Nm,int mstep>
-void proj<L,d,M,Nm,mstep>::link_verticies(){
+template<int L,int d,int M,int mann>
+void qaqmc<L,d,M,mann>::link_verticies(){
 	for(int i=0; i<N; i++){ Vl[i] = Vr[i] = -1; }
 	for(int i=0; i<8*M; i++){ X[i]=-1; }
 	for(int p=0; p<2*M;p++){
@@ -561,8 +501,8 @@ void proj<L,d,M,Nm,mstep>::link_verticies(){
 }
 
 
-template<int L,int d,int M,int Nm,int mstep>
-void proj<L,d,M,Nm,mstep>::print_opstr(bool link){
+template<int L,int d,int M,int mann>
+void qaqmc<L,d,M,mann>::print_opstr(bool link){
 	std::cout << "p=   ";
 	for(int p=0;p<2*M;p++){
 		std::cout << p << " ";

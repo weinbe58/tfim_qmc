@@ -1,5 +1,5 @@
-#ifndef __QAQMC_INCLUDED__
-#define __QAQMC_INCLUDED__
+#ifndef __proj_INCLUDED__
+#define __proj_INCLUDED__
 
 #include <vector>
 #include <stack>
@@ -31,27 +31,24 @@ struct get_N<L,1>
 
 
 template<int L,int d,int M,int Nm,int mstep>
-class qaqmc{
+class proj{
 
 	protected:
 		enum{N=get_N<L,d>::N};
 		enum{Nb=d*get_N<L,d>::N};
 
-		const double S_i;
-		const double S_f;
-		const double dS;
 		int Fl;
 		int Fr;
-		double S;
+		const double p1,p2,S;
 		std::string output_file;
 
-		int Ef[Nm+1];
-		int Et[Nm+1];
-		double Eising[Nm+1];
-		double E[Nm+1];
-		double mi[Nm+1];
-		double ma[Nm+1];
-		double m2[Nm+1];
+		int Ef;
+		int Et;
+		double Eising;
+		double E;
+		double mi;
+		double ma;
+		double m2;
 
 		signed char spinsR[N];
 		signed char spins[N];
@@ -59,15 +56,11 @@ class qaqmc{
 
 		int nns[Nb];
 		int bst[2*Nb];
-		int p_list[Nm+1];
 		int Vl[N];
 		int Vr[N];
 
-		//MTRand ran;
-
 		std::mt19937_64 gen;
 		std::uniform_real_distribution<double> dist;
-
 
 		std::vector<optype> opstr;
 		std::stack<int> stk;
@@ -76,7 +69,6 @@ class qaqmc{
 
 		// private functions:
 		void diagonal_update();
-		void inline update_S(int);
 		void link_verticies();
 		void cluster_update();
 		void visit_cluster();
@@ -85,15 +77,14 @@ class qaqmc{
 		void beginMeasure();
 		void Measurement();
 		void endMeasure();
+		void double_opstr();
 		void print_opstr(bool);
 
-		double inline ran(void){
-			return dist(gen);
-		}
+		double inline ran(void);
 
 
 	public:
-		qaqmc(const double,const double,const std::string&,const std::string&);
+		proj(const double,const std::string&,const std::string&);
 
 		void write_out();
 		void write_out_lock();
@@ -103,14 +94,24 @@ class qaqmc{
 };
 
 
+
+
 template<int L,int d,int M,int Nm,int mstep>
-qaqmc<L,d,M,Nm,mstep>::qaqmc(const double _S_i,
-							  const double _S_f,
-							  const std::string & bc,
-							  const std::string & _output_file
-							 ) : S_f(_S_f), S_i(_S_i), dS((_S_f-_S_i)/M)
+proj<L,d,M,Nm,mstep>::proj(const double _S,
+						const std::string & bc,
+						const std::string & _output_file
+						) : p1(1-_S), p2(2*d*_S+(1-_S)), S(_S)
 {
 	output_file = _output_file;
+
+	//seeding random number generator
+	unsigned int lo,hi,s;
+	__asm__ __volatile__ ("rdtsc" : "=a" (lo), "=d" (hi));
+	s=((unsigned long long)hi << 32) | lo;
+
+	gen.seed(s);
+	dist = std::uniform_real_distribution<double>(0.0,1.0);
+
 
 	for(int i=0;i<N;i++){
 		int LL = 1;
@@ -132,17 +133,15 @@ qaqmc<L,d,M,Nm,mstep>::qaqmc(const double _S_i,
 	int dm=0;
 
 	if(Nm>2*M){ std::cout << "Nm is too large." << std::endl; std::exit(3);}
-	else if(Nm<=0){ dm=0; }
-	else{ dm=2*M/Nm; }
-
+	if(Nm<=0){
+		std::cout << "Nm must be greater than 0." << std::endl;
+		std::exit(3);
+	}
 
 	for(int i=0;i<=2*M;i++){ Measure[i]=false; }
 
-	int k=0;
-	for(int i= -Nm/2;i<=Nm/2;i++){ 
-		Measure[M+i*dm]=true;
-		p_list[k]=M+i*dm;
-		k++;
+	for(int i=-Nm/2;i<=Nm/2;i++){ 
+		Measure[M+i]=true;
 	}
 
 	for(int p=0;p<2*M;p++){ opstr[p].o1=-1; opstr[p].o2=int(std::floor(N*ran()));}
@@ -177,19 +176,11 @@ qaqmc<L,d,M,Nm,mstep>::qaqmc(const double _S_i,
 		std::cout << "init_states error: bc not recognized." << std::endl;
 		std::exit(2);
 	}// end bc if tree
-
-	//seeding random number generator
-	unsigned int lo,hi,s;
-	__asm__ __volatile__ ("rdtsc" : "=a" (lo), "=d" (hi));
-	s=((unsigned long long)hi << 32) | lo;
-
-	gen.seed(s);
-	dist = std::uniform_real_distribution<double>(0.0,1.0);
 }
 
 
 template<int L,int d,int M,int Nm,int mstep>
-void qaqmc<L,d,M,Nm,mstep>::write_out_lock(){
+void proj<L,d,M,Nm,mstep>::write_out_lock(){
 	std::string filelock=output_file+".lock";
 	std::ofstream lockstream;
 	std::ofstream outstream; // Stream which the bin averages go to
@@ -199,17 +190,13 @@ void qaqmc<L,d,M,Nm,mstep>::write_out_lock(){
 
 	std::stringstream buffer;
 	buffer << std::setprecision(14) << std::fixed;
-
-	for(int i=0;i<Nm+1;i++){ 
-		update_S(p_list[i]);
-		buffer << std::setw(20) << S;
-		buffer << std::setw(20) << Eising[i];
-		buffer << std::setw(20) << double(Ef[i])/(double(Et[i])+1.1e-16);
-		buffer << std::setw(20) << mi[i];
-		buffer << std::setw(20) << ma[i];
-		buffer << std::setw(20) << m2[i];
-		buffer << std::endl;
-	}
+	buffer << std::setw(20) << S;
+	buffer << std::setw(20) << Eising;
+	buffer << std::setw(20) << double(Ef)/(double(Et)+1.1e-16);
+	buffer << std::setw(20) << mi;
+	buffer << std::setw(20) << ma;
+	buffer << std::setw(20) << m2;
+	buffer << std::endl;
 
 
  	while(!written){
@@ -237,25 +224,21 @@ void qaqmc<L,d,M,Nm,mstep>::write_out_lock(){
 
 
 template<int L,int d,int M,int Nm,int mstep>
-void qaqmc<L,d,M,Nm,mstep>::write_out(){
+void proj<L,d,M,Nm,mstep>::write_out(){
 	std::ofstream outstream; // Stream which the bin averages go to
 	bool written=false;
 	bool open=false;
 	int count=0;
-	std::stringstream buffer;
-	
-	buffer << std::setprecision(14) << std::fixed;
-	for(int i=0;i<Nm+1;i++){ 
-		update_S(p_list[i]);
-		buffer << std::setw(20) << S;
-		buffer << std::setw(20) << Eising[i];
-		buffer << std::setw(20) << double(Ef[i])/(double(Et[i])+1.1e-16);
-		buffer << std::setw(20) << mi[i];
-		buffer << std::setw(20) << ma[i];
-		buffer << std::setw(20) << m2[i];
-		buffer << std::endl;
-	}
 
+	std::stringstream buffer;
+	buffer << std::setprecision(14) << std::fixed;
+	buffer << std::setw(20) << S;
+	buffer << std::setw(20) << Eising;
+	buffer << std::setw(20) << double(Ef)/(double(Et)+1.1e-16);
+	buffer << std::setw(20) << mi;
+	buffer << std::setw(20) << ma;
+	buffer << std::setw(20) << m2;
+	buffer << std::endl;
 
 	while(!open){ 
 		outstream.open(output_file.c_str(), std::ios::app);
@@ -270,9 +253,13 @@ void qaqmc<L,d,M,Nm,mstep>::write_out(){
 	}
 }
 
+template<int L,int d,int M,int Nm,int mstep>
+double inline proj<L,d,M,Nm,mstep>::ran(void){
+	return dist(gen);
+}
 
 template<int L,int d,int M,int Nm,int mstep>
-void qaqmc<L,d,M,Nm,mstep>::EQstep(){
+void proj<L,d,M,Nm,mstep>::EQstep(){
 	for(int j=0;j<mstep;j++){
 		diagonal_update();
 		cluster_update();
@@ -281,7 +268,7 @@ void qaqmc<L,d,M,Nm,mstep>::EQstep(){
 
 
 template<int L,int d,int M,int Nm,int mstep>
-void qaqmc<L,d,M,Nm,mstep>::MCstep(){
+void proj<L,d,M,Nm,mstep>::MCstep(){
 	beginMeasure();
 	for(int j=0;j<mstep;j++){
 		diagonal_update();
@@ -293,32 +280,28 @@ void qaqmc<L,d,M,Nm,mstep>::MCstep(){
 
 
 template<int L,int d,int M,int Nm,int mstep>
-void qaqmc<L,d,M,Nm,mstep>::diagonal_update(){
+void proj<L,d,M,Nm,mstep>::diagonal_update(){
 	for(int i=0;i<N;i++){
 		spins[i]=spinsL[i];
 	}// end for(int i=1;...
 
 	for(int p=0;p<2*M;p++){
 		if(opstr[p].o1>-2){
-			bool accept=false;
-			update_S(p);
-			double p1 = (1-S);
-			double p2 = ((2*d-1)*S+1);
-			while(!accept){
+			while(true){
 				if(ran()*p2<p1){
 					opstr[p].o1=-1; 
-					opstr[p].o2=int(ran()*N);
-					accept=true;
+					opstr[p].o2=std::floor(ran()*N);
+					break;
 				}
 				else{
-					int ib = 2*int(ran()*Nb);
+					int ib = 2*std::floor(ran()*Nb);
 					int i = bst[ib];
 					int j = bst[ib+1];
 					if(spins[i]*spins[j]>0){
 						opstr[p].o1=i;
 						opstr[p].o2=j;
+						break;
 					}
-					accept=true;
 				}
 			}
 		}
@@ -330,44 +313,58 @@ void qaqmc<L,d,M,Nm,mstep>::diagonal_update(){
 
 
 template<int L,int d,int M,int Nm,int mstep>
-void inline qaqmc<L,d,M,Nm,mstep>::update_S(int p){
-	S=(p<M ? S_i+dS*(p+1) : S_f-dS*(p-M));
+void proj<L,d,M,Nm,mstep>::double_opstr(){
+	std::vector<optype> opstr_1;
+	opstr_1.resize(2*M);
+	for(int p=0;p<2*M;p++){opstr_1[p]=opstr[p];}
+	opstr.resize(4*M);
+	for(int p=0;p<2*M;p++){
+		if(opstr_1[p].o1>-2){
+			opstr[2*p]=opstr_1[p];
+			opstr[2*p+1]=opstr_1[p];
+		}
+		else{
+			opstr[2*p].o1=-1;
+			opstr[2*p].o2=opstr_1[p].o2;
+			opstr[2*p+1]=opstr_1[p];
+		}
+	}
 }
 
 
-
 template<int L,int d,int M,int Nm,int mstep>
-void qaqmc<L,d,M,Nm,mstep>::Measurement(){
-	double mprop;
-	int k;
+void proj<L,d,M,Nm,mstep>::Measurement(){
+	double mprop=0;
+	int k=0;
 	for(int i=0;i<N;i++){spins[i]=spinsL[i];}
-	mprop=0;
 	for(int i=0;i<N;i++){mprop+=spins[i];}// end for(int i=0;i<N;i++)
 
 	mprop=mprop/2;
-	k=0;
 	
 	int o1,o2;
 	for(int p=0;p<2*M;p++){
 		o1=opstr[p].o1;
 		o2=opstr[p].o2;
+		// if(p==M){
+		// 	for(int i=0;i<N;i++){std::cout << int(spins[i]) << std::setw(4);}
+		// 	std::cout << std::endl;
+		// }
 		if(Measure[p]){
-			int ising = 0;
+			double ising = 0;
 			for(int b=0;b<Nb;b++){
 				int i=bst[2*b];
 				int j=bst[2*b+1];
 				ising += spins[i]*spins[j];
 			}
-			Eising[k] += ising;
 
-			if(o1==-1){Et[k]++;}
-			else if(o1==-2){Ef[k]++;}
+			if(o1==-1){Et++;}
+			else if(o1==-2){Ef++;}
 
-			double Mag=mprop/N;
-			mi[k]+=Mag;
-			ma[k]+=std::abs(Mag);
-			m2[k]+=Mag*Mag;
-			k++;
+			Eising += ising/N;
+			double Mag=2*mprop/N;
+			mi+=Mag;
+			ma+=std::abs(Mag);
+			m2+=Mag*Mag;
 		}
 		if(o1<-1){
 			spins[o2]*=-1;
@@ -377,53 +374,47 @@ void qaqmc<L,d,M,Nm,mstep>::Measurement(){
 
 
 	if(Measure[2*M]){
-		int ising = 0;
 		for(int b=0;b<Nb;b++){
 			int i=bst[2*b];
 			int j=bst[2*b+1];
-			ising+=spins[i]*spins[j];
+			Eising+=spins[i]*spins[j];
 		}
-		Eising[k] += ising;
 
-		if(o1==-1){Et[k]++;}
-		else if(o1==-2){Ef[k]++;}
+		if(o1==-1){Et++;}
+		else if(o1==-2){Ef++;}
 
-		double Mag=mprop/N;
-		mi[k]+=Mag;
-		ma[k]+=std::abs(Mag);
-		m2[k]+=Mag*Mag;
+		double Mag=2*mprop/N;
+		mi+=Mag;
+		ma+=std::abs(Mag);
+		m2+=Mag*Mag;
 	}
 }
 
 
 template<int L,int d,int M,int Nm,int mstep>
-void qaqmc<L,d,M,Nm,mstep>::beginMeasure(){
-	for(int i=0;i<=Nm;i++){
-		Eising[i]=0;
-		Ef[i]=0;
-		Et[i]=0;
-		mi[i]=0;
-		ma[i]=0;
-		m2[i]=0;
-	}
+void proj<L,d,M,Nm,mstep>::beginMeasure(){
+	Eising=0;
+	Ef=0;
+	Et=0;
+	mi=0;
+	ma=0;
+	m2=0;
 }
 
 
 template<int L,int d,int M,int Nm,int mstep>
-void qaqmc<L,d,M,Nm,mstep>::endMeasure(){
-	for(int i=0;i<=Nm;i++){
-		update_S(p_list[i]);
-		
-		Eising[i] /= (N*size_t(mstep));
-		mi[i] /= mstep;
-		ma[i] /= mstep;
-		m2[i] /= mstep;
-	}
+void proj<L,d,M,Nm,mstep>::endMeasure(){
+	Eising /= (size_t(mstep)*Nm);
+	mi /= (size_t(mstep)*Nm);
+	ma /= (size_t(mstep)*Nm);
+	m2 /= (size_t(mstep)*Nm);
+	// std::cout << mi << std::endl;
+
 }
 
 
 template<int L,int d,int M,int Nm,int mstep>
-void qaqmc<L,d,M,Nm,mstep>::cluster_update(){
+void proj<L,d,M,Nm,mstep>::cluster_update(){
 	link_verticies();
 
 	// first mark clusters which are attached to end spins which can't be flipped
@@ -448,15 +439,46 @@ void qaqmc<L,d,M,Nm,mstep>::cluster_update(){
 		}
 	}
 
-	// flipping cluster with 50/50 probability on all clusters which have not been visited
+	// attempt with 50/50 probability to flip clusters which are attached to end spins which can be flipped
+	// left side first
+	if(Fl==1){
+		for(int i=0;i<N;i++){
+			if(Vl[i]>=0 && X[Vl[i]]>=0){
+				stk.push(Vl[i]);
+				if(ran()>=0.5){
+					flip_cluster();
+				}
+				else{
+					visit_cluster();
+				}
+			}
+		}
+	}
+
+	// right side next
+	if(Fr==1){
+		for(int i=0;i<N;i++){
+			if(Vr[i]>=0 && X[Vr[i]]>=0){
+				stk.push(Vr[i]);
+				if(ran()>=0.5){
+					flip_cluster();
+				}
+				else{
+					visit_cluster();
+				}
+			}
+		}
+	}
+
+	// flipping bluk cluster with 50/50 probability on all clusters which have not been visited
 	for(int v0=0;v0<8*M;v0++){
 		if(X[v0]>=0){
 			int p=v0/4;
 			if(opstr[p].o1<0){
 				int v1=X[v0];
-				stk.push(v1);;
+				stk.push(v1);
 				if(ran()>=0.5){
-					opstr[p].o1=(opstr[p].o1^1); // flip operator with some bit operation
+					opstr[p].o1^=1; // flip operator with some bit operation
 					X[v0]=-2;
 					flip_cluster();
 				}
@@ -473,7 +495,7 @@ void qaqmc<L,d,M,Nm,mstep>::cluster_update(){
 		for(int i=0;i<N;i++){
 			int vl=Vl[i];
 			if(vl==-1){
-				if(ran()<0.5){spinsL[i]*=-1;spinsR[i]*=-1;}
+				if(ran()>=0.5){spinsL[i]*=-1;spinsR[i]*=-1;}
 			}
 			else{
 				if(X[vl]==-2){spinsL[i]*=-1;spinsR[i]*=-1;}
@@ -483,15 +505,19 @@ void qaqmc<L,d,M,Nm,mstep>::cluster_update(){
 	else{
 		for(int i=0;i<N;i++){
 			int vl=Vl[i];	int vr=Vr[i];
-			if(vl!=-1){ if(X[vl]==-2){spinsL[i]*=-1;} }
-			if(vr!=-1){ if(X[vr]==-2){spinsR[i]*=-1;} }
+			if(vl!=-1 && X[vl]==-2){spinsL[i]*=-1;}
+			if(vr!=-1 && X[vr]==-2){spinsR[i]*=-1;}
+			if(Fl==1 && Fr==1 && vr==-1 && vl==-1 && ran()>=0.5){ // flip spins disconnected from operators
+				spinsL[i]*=-1;spinsR[i]*=-1;
+			}
+
 		}
 	}
 }
 
 
 template<int L,int d,int M,int Nm,int mstep>
-void qaqmc<L,d,M,Nm,mstep>::visit_cluster(){
+void proj<L,d,M,Nm,mstep>::visit_cluster(){
 	while(!stk.empty()){
 		int v=stk.top(); stk.pop();
 		if(v >= 8*M) continue;
@@ -509,8 +535,8 @@ void qaqmc<L,d,M,Nm,mstep>::visit_cluster(){
 }
 
 
-template<int L,int d,int M, int Nm,int mstep>
-void qaqmc<L,d,M,Nm,mstep>::flip_cluster(){
+template<int L,int d,int M,int Nm,int mstep>
+void proj<L,d,M,Nm,mstep>::flip_cluster(){
 	while(!stk.empty()){
 		int v=stk.top(); stk.pop();
 		if(v >= 8*M) continue;
@@ -525,7 +551,7 @@ void qaqmc<L,d,M,Nm,mstep>::flip_cluster(){
 			}// end for(int v1=v+1;...
 		}
 		else{
-			opstr[p].o1=(opstr[p].o1^1); // flip operator with some bit operation
+			opstr[p].o1^=1; // flip operator with some bit operation
 		}// end if(opstr[p].o1>=0)
 	}// end while(stk.empty()!) 
 }
@@ -534,7 +560,7 @@ void qaqmc<L,d,M,Nm,mstep>::flip_cluster(){
 // increasing p
 // <Vl| -> |Vr>
 template<int L,int d,int M,int Nm,int mstep>
-void qaqmc<L,d,M,Nm,mstep>::link_verticies(){
+void proj<L,d,M,Nm,mstep>::link_verticies(){
 	for(int i=0; i<N; i++){ Vl[i] = Vr[i] = -1; }
 	for(int i=0; i<8*M; i++){ X[i]=-1; }
 	for(int p=0; p<2*M;p++){
@@ -581,7 +607,7 @@ void qaqmc<L,d,M,Nm,mstep>::link_verticies(){
 
 
 template<int L,int d,int M,int Nm,int mstep>
-void qaqmc<L,d,M,Nm,mstep>::print_opstr(bool link){
+void proj<L,d,M,Nm,mstep>::print_opstr(bool link){
 	std::cout << "p=   ";
 	for(int p=0;p<2*M;p++){
 		std::cout << p << " ";
