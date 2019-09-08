@@ -32,6 +32,11 @@ class uniform_dist
 			dist = std::uniform_real_distribution<double>(low,high);
 		};
 
+		uniform_dist(double low, double high, unsigned int s){
+			gen.seed(s);
+			dist = std::uniform_real_distribution<double>(low,high);
+		};
+
 		uniform_dist(double low, double high,unsigned int s){
 			gen.seed(s);
 			dist = std::uniform_real_distribution<double>(low,high);

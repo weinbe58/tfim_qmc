@@ -2,8 +2,8 @@
 #define __qaqmc_local_INCLUDED__
 
 #include <iostream>
-#include "base.h"
-#include "proj_base.h"
+#include "base/base.h"
+#include "proj/proj_base.h"
 
 class anneal_qaqmc_local : public proj_base{
 	protected:

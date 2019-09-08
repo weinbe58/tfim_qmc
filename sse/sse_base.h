@@ -1,7 +1,7 @@
 #ifndef __sse_base_INCLUDED__
 #define __sse_base_INCLUDED__
 
-#include "base.h"
+#include "base/base.h"
 
 class sse_base : public base{
 	protected:

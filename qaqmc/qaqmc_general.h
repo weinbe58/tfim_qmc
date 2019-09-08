@@ -1,13 +1,13 @@
-#ifndef __qaqmc_local_INCLUDED__
-#define __qaqmc_local_INCLUDED__
+#ifndef __qaqmc_general_INCLUDED__
+#define __qaqmc_general_INCLUDED__
 
 #include <iostream>
 #include <algorithm>
 #include <cmath>
-#include "base.h"
-#include "proj_base.h"
+#include "base/base.h"
+#include "proj/proj_base.h"
 
-class qaqmc_glass : public proj_base{
+class qaqmc_general : public proj_base{
 	protected:
 		const int * bst;
 		const double * Jb;
@@ -22,18 +22,18 @@ class qaqmc_glass : public proj_base{
 		void move_op(int);
 
 	public:
-		qaqmc_glass(int,const int,const int, const int[],const double[],double*,int*,double (*)(double,double*,int*), const int, const int,
+		qaqmc_general(int,const int,const int, const int[],const double[],double*,int*,double (*)(double,double*,int*), const int, const int,
 			const short_vec,const short_vec);
-		qaqmc_glass(int,const int,const int, const int[],const double[],double*,int*,double (*)(double,double*,int*), const int, const int);
+		qaqmc_general(int,const int,const int, const int[],const double[],double*,int*,double (*)(double,double*,int*), const int, const int);
 
-		~qaqmc_glass() {};
+		~qaqmc_general() {};
 		int get_Nb() {return Nb;}
 		
 
 };
 
 
-qaqmc_glass::qaqmc_glass(int _M,const int _N,const int _Nb, const int _bst[],const double _Jb[],double *_rpar,int *_ipar,double (* func)(double,double*,int*),
+qaqmc_general::qaqmc_general(int _M,const int _N,const int _Nb, const int _bst[],const double _Jb[],double *_rpar,int *_ipar,double (* func)(double,double*,int*),
 		 	const int _Fl, const int _Fr, const short_vec _sL,const short_vec _sR) :
 proj_base::proj_base(_M,_N,_Fl,_Fr,_sL,_sR), rpar(_rpar), ipar(_ipar), Nb(_Nb), bst(_bst), Jb(_Jb), S_func(func), Smax(func(1.0,_rpar,_ipar)){
 	for(int i=0;i<2*Nb;i++){
@@ -57,7 +57,7 @@ proj_base::proj_base(_M,_N,_Fl,_Fr,_sL,_sR), rpar(_rpar), ipar(_ipar), Nb(_Nb), 
 	
 }
 
-qaqmc_glass::qaqmc_glass(int _M,const int _N,const int _Nb, const int _bst[],const double _Jb[],double *_rpar,int *_ipar,double (* func)(double,double*,int*),
+qaqmc_general::qaqmc_general(int _M,const int _N,const int _Nb, const int _bst[],const double _Jb[],double *_rpar,int *_ipar,double (* func)(double,double*,int*),
 		 	const int _Fl, const int _Fr) : proj_base::proj_base(_M,_N,_Fl,_Fr),
 		 	rpar(_rpar), ipar(_ipar), Nb(_Nb), bst(_bst), Jb(_Jb), S_func(func), Smax(func(1.0,_rpar,_ipar)){
 
@@ -83,7 +83,7 @@ qaqmc_glass::qaqmc_glass(int _M,const int _N,const int _Nb, const int _bst[],con
 }
 
 
-void qaqmc_glass::move_op(int p){
+void qaqmc_general::move_op(int p){
 	double S;
 
 	if(p < base::M/2){

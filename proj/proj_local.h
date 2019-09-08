@@ -2,8 +2,8 @@
 #define __proj_local_INCLUDED__
 
 #include <iostream>
-#include "base.h"
-#include "proj_base.h"
+#include "base/base.h"
+#include "proj/proj_base.h"
 
 class proj_local : public proj_base{
 	protected:

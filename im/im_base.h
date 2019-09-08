@@ -1,7 +1,7 @@
 #ifndef __im_base_INCLUDED__
 #define __im_base_INCLUDED__
 
-#include "base.h"
+#include "base/base.h"
 #include <vector>
 #include <algorithm>
 #include <functional>

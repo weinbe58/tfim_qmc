@@ -11,9 +11,9 @@
 #include <string>
 #include <cmath>
 #include <algorithm>
-#include "state_iterator.h"
-#include "optype.h"
-#include "uniform_dist.h"
+#include "base/state_iterator.h"
+#include "base/optype.h"
+#include "base/uniform_dist.h"
 
 
 

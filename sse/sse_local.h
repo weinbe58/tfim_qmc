@@ -2,8 +2,10 @@
 #define __sse_local_INCLUDED__
 
 #include <iostream>
-#include "base.h"
-#include "sse_base.h"
+#include "base/base.h"
+#include "sse/sse_base.h"
+
+// updates for uniform coupling strength on ising and tranverse field. 
 
 class sse_local : public sse_base{
 	protected:
